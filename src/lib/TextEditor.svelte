@@ -3,8 +3,11 @@
 
   // Type
   import type { RecentSelection } from '../types/RecentSelection';
+  import type { SelectedText } from '../types/SelectedText';
+  import type { Control } from '../lib/ControlsUI/ControlsUI';
 
   export let className: string = '';
+  export let selectedText: SelectedText[] = [];
 
   const dispatch = createEventDispatcher();
 
@@ -12,20 +15,33 @@
   let previewArea: HTMLDivElement = null;
 
   let recentSelection: RecentSelection = null;
+
+  const modifyHTMLContent = (selection: RecentSelection): string => {
+    const replaced = `<span class="${className}">${selection.text}</span>`;
+
+    const leftMost = editorArea.value.substring(0, selection.start);
+    const rightMost = editorArea.value.substring(selection.end, editorArea.value.length);
+
+    return `${leftMost}${replaced}${rightMost}`;
+  };
+
   // Event Handlers
   const textSelected = () => {
     const selected = editorArea.value.substring(editorArea.selectionStart, editorArea.selectionEnd);
-    recentSelection = {
-      text: selected,
-      start: editorArea.selectionStart,
-      end: editorArea.selectionEnd,
-    };
-    dispatch('select', selected);
+
+    if (!!selected) {
+      recentSelection = {
+        text: selected,
+        start: editorArea.selectionStart,
+        end: editorArea.selectionEnd,
+      };
+      dispatch('select', selected);
+    }
   };
 
   const onTextAreaChanged = () => {
     if (!!editorArea && !!previewArea) {
-      previewArea.textContent = editorArea.value;
+      previewArea.innerHTML = !!recentSelection ? modifyHTMLContent(recentSelection) : editorArea.value;
       previewArea.scrollTop = editorArea.scrollTop;
     }
   };
@@ -35,13 +51,9 @@
   };
 
   $: {
-    if (!!className) {
-      const replaced = `<span class="${className}">${recentSelection.text}</span>`;
-
-      const leftMost = editorArea.value.substring(0, recentSelection.start);
-      const rightMost = editorArea.value.substring(recentSelection.end, editorArea.value.length);
-
-      previewArea.innerHTML = `${leftMost}${replaced}${rightMost}`;
+    if (!!className && !!recentSelection.text) {
+      console.log(selectedText)
+      previewArea.innerHTML = modifyHTMLContent(recentSelection);
     }
   }
 </script>
@@ -119,10 +131,5 @@
     filter: blur(2px);
     background-color: var(--color-primary);
     color: transparent;
-  }
-  :global(.display) {
-    filter: blur(0);
-    background-color: var(--color-secondary);
-    color: inherit;
   }
 </style>

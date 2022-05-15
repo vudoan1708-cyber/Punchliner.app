@@ -14,7 +14,7 @@
   let controls: Control[] = [
     {
       lookUpName: 'display',
-      title: 'Show',
+      title: 'Click to hide',
     },
   ];
 
@@ -29,6 +29,8 @@
 
     // TODO: Add the selected text to the selectedText array
     selectedText = [ ...selectedText, tempSelectedText ];
+    tempSelectedText = null;
+
     className = changedControl.lookUpName;
   };
 
@@ -36,9 +38,13 @@
     modifyControls(lookUpName, changedControl);
 
     // TODO: Remove the most recent selected text form the selectedText array
-    const idx = selectedText.findIndex((text) => text.id === tempSelectedText.id);
-    selectedText.splice(idx, 1);
-    className = changedControl.lookUpName;
+    const idx = selectedText.findIndex((text) => (!!text && text.id === tempSelectedText.id));
+    if (!!selectedText[idx]) {
+      selectedText.splice(idx, 1);
+      tempSelectedText = null;
+      console.log(selectedText)
+      className = changedControl.lookUpName;
+    }
   };
 
   let tempSelectedText: SelectedText = null;
@@ -51,42 +57,55 @@
       };
       tempSelectedText = { ...selected };
 
-      const [ , isDuplicate ] = appendingArrayWithDuplicateChecker(selectedText, tempSelectedText);
+      const IDs = selectedText.map((text) => text.id);
 
+      let isDuplicate: boolean = false;
+      IDs.forEach(() => {
+        [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, tempSelectedText.id);
+      });
+      console.log(isDuplicate)
       if (selectedText.length === 0) {
         return;
       }
       // If the selected text is a duplicate, then it has been hidden away
-      // Hence, show the Display icon, and likewise
-      if (!!isDuplicate) modifyControls('hide', {
-        lookUpName: 'display',
-        title: 'Show',
-      });
-      else modifyControls('display', {
+      // Hence, the title is `Click to show`, and likewise
+      if (!!isDuplicate) modifyControls('display', {
         lookUpName: 'hide',
-        title: 'Hide',
+        title: 'Click to show',
+      });
+      else modifyControls('hide', {
+        lookUpName: 'display',
+        title: 'Click to hide',
       });
       return;
     }
     tempSelectedText = null;
+    modifyControls('hide', {
+      lookUpName: 'display',
+      title: 'Click to hide',
+    });
   };
 </script>
 
 <main>
   <section id="wrap">
-    <TextEditor on:select={textSelected} {className} />
+    <TextEditor
+      {className}
+      {selectedText}
+      on:select={textSelected} />
   </section>
 
   <section id="controls_wrap">
     <ControlsUI
       {controls}
+      {tempSelectedText}
       on:hide-click={() => { displayContent('hide', {
         lookUpName: 'display',
-        title: 'Show',
+        title: 'Click to hide',
       }); }}
       on:display-click={() => { hideContent('display', {
         lookUpName: 'hide',
-        title: 'Hide',
+        title: 'Click to show',
       }); }} />
   </section>
 </main>

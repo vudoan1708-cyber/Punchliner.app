@@ -5,8 +5,10 @@
 
   // Type
   import type { Control } from './ControlsUI';
+  import type { SelectedText } from '../../types/SelectedText';
 
   export let controls: Control[] = [];
+  export let tempSelectedText: SelectedText = null;
 
   const dispatch = createEventDispatcher();
 
@@ -14,13 +16,19 @@
   const onIconClicked = (which) => {
     dispatch(which);
   };
+
+  $: disabled = !tempSelectedText;
 </script>
 
 <!-- <template> -->
 <div id="controls">
   <div id="toolbar">
     {#each controls as control}
-      <span class="icon_wrapper" title={control.title} on:click={() => { onIconClicked(`${control.lookUpName}-click`); }}>
+      <span
+        class="icon_wrapper"
+        title={control.title}
+        {disabled}
+        on:click={() => { onIconClicked(`${control.lookUpName}-click`); }}>
         <Icon name={control.lookUpName} style="color: var(--color-primary);" />
       </span>
     {/each}
@@ -46,5 +54,9 @@
   #toolbar .icon_wrapper {
     margin-right: var(--margin);
     cursor: pointer;
+  }
+
+  #toolbar .icon_wrapper[disabled="true"] {
+    pointer-events: none;
   }
 </style>
