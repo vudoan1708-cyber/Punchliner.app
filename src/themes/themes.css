@@ -4,5 +4,6 @@
   --margin: 8px;
   --padding: 8px;
   --color-primary: #0f0;
+  --color-primary-light: rgba(0, 255, 0, 0.5);
   --color-secondary: #000;
 }

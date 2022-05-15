@@ -8,8 +8,6 @@
 
   // Event Handlers
   const textSelected = () => {
-    previewArea.textContent = editorArea.value;
-
     const selected = editorArea.value.substring(editorArea.selectionStart, editorArea.selectionEnd);
     const replaced = `<span class="selected">${selected}</span>`;
 
@@ -19,8 +17,13 @@
 
   const onTextAreaChanged = () => {
     if (!!editorArea && !!previewArea) {
-      previewArea.scrollTop = previewArea.scrollHeight;
+      previewArea.textContent = editorArea.value;
+      previewArea.scrollTop = editorArea.scrollTop;
     }
+  };
+
+  const onTextAreaScrolled = (e) => {
+    previewArea.scrollTop = e.target.scrollTop;
   };
 </script>
 
@@ -32,7 +35,8 @@
         wrap="soft"
         placeholder="Type here..."
         bind:this={editorArea}
-        on:change={onTextAreaChanged}
+        on:input={onTextAreaChanged}
+        on:scroll={onTextAreaScrolled}
         on:mouseup={() => { textSelected(); }} />
       <div id="preview" bind:this={previewArea}></div>
     </div>
@@ -84,10 +88,11 @@
     left: 2px;
     pointer-events: none;
     background: transparent;
+    padding-bottom: 35px;
   }
 
-  ::-webkit-scrollbar(#preview) {
-    width: 0;
+  #preview::-webkit-scrollbar {
+    display: none;
   }
 
   :global(.selected) {
