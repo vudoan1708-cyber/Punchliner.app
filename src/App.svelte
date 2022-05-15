@@ -5,12 +5,30 @@
   // Type
   import type { Control } from './lib/ControlsUI/ControlsUI';
 
-  const controls: Control = [
+  let controls: Control = [
     {
       lookUpName: 'hide',
       title: 'Hide',
     },
   ];
+
+  const hideContent = () => {
+    controls = [
+      {
+        lookUpName: 'display',
+        title: 'Show',
+      },
+    ]
+  };
+
+  const displayContent = () => {
+    controls = [
+    {
+      lookUpName: 'hide',
+      title: 'Hide',
+    },
+  ];
+  };
 </script>
 
 <main>
@@ -19,7 +37,7 @@
   </section>
 
   <section id="controls_wrap">
-    <ControlsUI {controls} />
+    <ControlsUI {controls} on:hide={hideContent} on:display={displayContent} />
   </section>
 </main>
 

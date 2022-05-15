@@ -4,12 +4,23 @@
   const dispatch = createEventDispatcher();
 
   let editorArea: HTMLTextAreaElement = null;
+  let previewArea: HTMLDivElement = null;
 
-  // Event Handler
+  // Event Handlers
   const textSelected = () => {
-    const selected = editorArea.value.substring(editorArea.selectionStart, editorArea.selectionEnd);
+    previewArea.textContent = editorArea.value;
 
+    const selected = editorArea.value.substring(editorArea.selectionStart, editorArea.selectionEnd);
+    const replaced = `<span class="selected">${selected}</span>`;
+
+    previewArea.innerHTML = previewArea.textContent.replace(selected, replaced);
     if (!!selected) dispatch('select', selected);
+  };
+
+  const onTextAreaChanged = () => {
+    if (!!editorArea && !!previewArea) {
+      previewArea.scrollTop = previewArea.scrollHeight;
+    }
   };
 </script>
 
@@ -21,9 +32,10 @@
         wrap="soft"
         placeholder="Type here..."
         bind:this={editorArea}
+        on:change={onTextAreaChanged}
         on:mouseup={() => { textSelected(); }} />
+      <div id="preview" bind:this={previewArea}></div>
     </div>
-    <div id="preview" style="display: none;"></div>
   </form>
 <!-- </template> -->
 
@@ -53,6 +65,9 @@
     box-sizing: border-box;
     color: var(--color-primary);
     background-color: var(--color-secondary);
+    line-height: 120%;
+    font-family: monospace, monospace;
+    font-size: 100%;
     border: 0;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -63,11 +78,19 @@
     font-feature-settings: "liga" 0;
   }
 
-  #editor {
-    color: var(--color-primary);
-    background-color: var(--color-secondary);
-    line-height: 120%;
-    font-family: monospace, monospace;
-    font-size: 100%;
+  #preview {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    pointer-events: none;
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar(#preview) {
+    width: 0;
+  }
+
+  :global(.selected) {
+    color: white;
   }
 </style>

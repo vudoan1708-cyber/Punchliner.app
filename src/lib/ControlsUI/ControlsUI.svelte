@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
+
   import Icon from '../../components/Icon/Icon.svelte';
 
   // Type
@@ -6,9 +8,11 @@
 
   export let controls: Control = [];
 
+  const dispatch = createEventDispatcher();
+
   // Event Handler
   const onIconClicked = (which) => {
-    console.log(which);
+    dispatch(which);
   };
 </script>
 
