@@ -1,18 +1,26 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 
+  // Type
+  import type { RecentSelection } from '../types/RecentSelection';
+
+  export let className: string = '';
+
   const dispatch = createEventDispatcher();
 
   let editorArea: HTMLTextAreaElement = null;
   let previewArea: HTMLDivElement = null;
 
+  let recentSelection: RecentSelection = null;
   // Event Handlers
   const textSelected = () => {
     const selected = editorArea.value.substring(editorArea.selectionStart, editorArea.selectionEnd);
-    const replaced = `<span class="selected">${selected}</span>`;
-
-    previewArea.innerHTML = previewArea.textContent.replace(selected, replaced);
-    if (!!selected) dispatch('select', selected);
+    recentSelection = {
+      text: selected,
+      start: editorArea.selectionStart,
+      end: editorArea.selectionEnd,
+    };
+    dispatch('select', selected);
   };
 
   const onTextAreaChanged = () => {
@@ -25,6 +33,17 @@
   const onTextAreaScrolled = (e) => {
     previewArea.scrollTop = e.target.scrollTop;
   };
+
+  $: {
+    if (!!className) {
+      const replaced = `<span class="${className}">${recentSelection.text}</span>`;
+
+      const leftMost = editorArea.value.substring(0, recentSelection.start);
+      const rightMost = editorArea.value.substring(recentSelection.end, editorArea.value.length);
+
+      previewArea.innerHTML = `${leftMost}${replaced}${rightMost}`;
+    }
+  }
 </script>
 
 <!-- <template> -->
@@ -87,7 +106,8 @@
     top: 2px;
     left: 2px;
     pointer-events: none;
-    background: transparent;
+    /* background: transparent; */
+    background-color: rgba(0, 0, 0, 0.5);
     padding-bottom: 35px;
   }
 
@@ -95,7 +115,14 @@
     display: none;
   }
 
-  :global(.selected) {
-    color: white;
+  :global(.hide) {
+    filter: blur(2px);
+    background-color: var(--color-primary);
+    color: transparent;
+  }
+  :global(.display) {
+    filter: blur(0);
+    background-color: var(--color-secondary);
+    color: inherit;
   }
 </style>

@@ -6,7 +6,7 @@
   // Type
   import type { Control } from './ControlsUI';
 
-  export let controls: Control = [];
+  export let controls: Control[] = [];
 
   const dispatch = createEventDispatcher();
 
@@ -20,7 +20,7 @@
 <div id="controls">
   <div id="toolbar">
     {#each controls as control}
-      <span class="icon_wrapper" title={control.title} on:click={() => { onIconClicked(control.lookUpName); }}>
+      <span class="icon_wrapper" title={control.title} on:click={() => { onIconClicked(`${control.lookUpName}-click`); }}>
         <Icon name={control.lookUpName} style="color: var(--color-primary);" />
       </span>
     {/each}
