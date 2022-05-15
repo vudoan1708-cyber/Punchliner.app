@@ -17,6 +17,7 @@
       title: 'Click to hide',
     },
   ];
+  let controlClicked: boolean = false;
 
   const modifyControls = (lookUpName: string, changedControl: Control) => {
     const idx = controls.findIndex((control) => control.lookUpName === lookUpName);
@@ -32,6 +33,7 @@
     tempSelectedText = null;
 
     className = changedControl.lookUpName;
+    controlClicked = true;
   };
 
   const displayContent = (lookUpName: string, changedControl: Control) => {
@@ -44,6 +46,7 @@
       tempSelectedText = null;
       console.log(selectedText)
       className = changedControl.lookUpName;
+      controlClicked = true;
     }
   };
 
@@ -92,6 +95,7 @@
     <TextEditor
       {className}
       {selectedText}
+      bind:controlClicked
       on:select={textSelected} />
   </section>
 

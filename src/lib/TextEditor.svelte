@@ -4,10 +4,11 @@
   // Type
   import type { RecentSelection } from '../types/RecentSelection';
   import type { SelectedText } from '../types/SelectedText';
-  import type { Control } from '../lib/ControlsUI/ControlsUI';
+  // import type { Control } from '../lib/ControlsUI/ControlsUI';
 
   export let className: string = '';
   export let selectedText: SelectedText[] = [];
+  export let controlClicked: boolean = false;
 
   const dispatch = createEventDispatcher();
 
@@ -27,6 +28,7 @@
 
   // Event Handlers
   const textSelected = () => {
+    controlClicked = false;
     const selected = editorArea.value.substring(editorArea.selectionStart, editorArea.selectionEnd);
 
     if (!!selected) {
@@ -50,8 +52,9 @@
     previewArea.scrollTop = e.target.scrollTop;
   };
 
+  $: textEditable = (!!controlClicked && !!className && !!recentSelection.text);
   $: {
-    if (!!className && !!recentSelection.text) {
+    if (!!textEditable) {
       console.log(selectedText)
       previewArea.innerHTML = modifyHTMLContent(recentSelection);
     }
@@ -131,5 +134,13 @@
     filter: blur(2px);
     background-color: var(--color-primary);
     color: transparent;
+    pointer-events: all;
+    cursor: pointer;
+    transition: .2s filter, .2s background-color, .2s color;
+  }
+  :global(.hide:hover) {
+    filter: blur(0);
+    background-color: initial;
+    color: inherit;
   }
 </style>
