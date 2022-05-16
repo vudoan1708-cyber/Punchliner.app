@@ -49,27 +49,29 @@
   };
 
   let tempSelectedText: SelectedText = null;
-  let isSameTextSelected: boolean = false;
+  let isDuplicate: boolean = false;
   const textSelected = ({ detail }): void => {
     if (!!detail) {
       const selected = {
-        id: uuid(`${detail.text} ${detail.start} ${detail.end}`),
+        id: uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()} ${detail.start} ${detail.end}`),
         selected: detail.text,
       };
       tempSelectedText = { ...selected };
 
       const IDs = selectedText.map((text) => text.id);
 
-      IDs.forEach(() => {
-        [ , isSameTextSelected ] = appendingArrayWithDuplicateChecker(IDs, tempSelectedText.id);
-      });
+      if (IDs.length > 0) {
+        IDs.forEach(() => {
+          [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, tempSelectedText.id);
+        });
+      } else isDuplicate = false;
 
       if (selectedText.length === 0) {
         return;
       }
       // If the selected text is a duplicate, then it has been hidden away
       // Hence, the title is `Click to show`, and likewise
-      if (!!isSameTextSelected) modifyControls('display', {
+      if (!!isDuplicate) modifyControls('display', {
         lookUpName: 'hide',
         title: 'Click to show',
       });
@@ -91,7 +93,7 @@
   <section id="wrap">
     <TextEditor
       {className}
-      {isSameTextSelected}
+      {isDuplicate}
       bind:tempSelectedText
       bind:controlClicked
       on:select={textSelected} />

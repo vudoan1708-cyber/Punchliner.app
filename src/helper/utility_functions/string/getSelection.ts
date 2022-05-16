@@ -54,8 +54,8 @@ export default (): RecentSelection => {
       return {
         _self_: sel.anchorNode,
         text: container.textContent,
-        start: sel.anchorOffset,
-        end: sel.focusOffset,
+        start: sel.anchorOffset < sel.focusOffset ? sel.anchorOffset : sel.focusOffset,
+        end: sel.anchorOffset < sel.focusOffset ? sel.focusOffset : sel.anchorOffset,
       };
     }
   }

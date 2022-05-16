@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { tick, createEventDispatcher } from 'svelte';
 
   // Type
   import type { RecentSelection } from '../types/RecentSelection';
@@ -14,7 +14,7 @@
 
   export let className: string = '';
   export let tempSelectedText: SelectedText = null;
-  export let isSameTextSelected: boolean = null;
+  export let isDuplicate: boolean = null;
   // export let selectedText: SelectedText[] = [];
   export let controlClicked: boolean = false;
 
@@ -24,6 +24,31 @@
   let typedContentArea: HTMLParagraphElement = null;
 
   let recentSelection: RecentSelection = null;
+
+  const placeCaretAtEnd = (el: HTMLElement) => {
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+  const replaceTagsWithBackslash = (childNodes: NodeListOf<ChildNode>): string => {
+    let newValue: string = '';
+    let i = 0;
+    while (i <= childNodes.length) {
+      const node = childNodes[i];
+      if (!!node) {
+        if (node.nodeName === 'P' || node.nodeName === 'BR' || node.nodeName === 'DIV') {
+          newValue += `${node.textContent}\n`;
+        }
+      }
+      i += 1;
+    }
+    return newValue;
+  };
 
   const strippedString = (uuid: string): string => {
     let str = typedContentArea.querySelector(`[data-uuid="${uuid}"]`).innerHTML;
@@ -43,7 +68,6 @@
 
     const leftMost = editorArea.textContent.substring(0, selection.start);
     const rightMost = editorArea.textContent.substring(selection.end, editorArea.textContent.length);
-
     tempSelectedText = null;
 
     return `${leftMost}${replaced}${rightMost}`;
@@ -64,7 +88,7 @@
   const textSelected = () => {
     controlClicked = false;
     const selected: RecentSelection =  getSelection();
-
+    console.log(selected);
     if (!!selected) {
       recentSelection = {
         _self_: selected._self_,
@@ -76,9 +100,28 @@
     }
   };
 
+  const onTextEditorKeyedDown = async (e) => {
+    if (e.keyCode === 13 || e.code === 'Enter') {
+      if (typedContentArea.textContent.trim().indexOf(PLACEHOLDER) > -1) {
+        e.preventDefault();
+        return;
+      }
+      await tick();
+      const replaced = replaceTagsWithBackslash(editorArea.childNodes);
+      typedContentArea.innerHTML = replaced;
+      setTimeout(() => {
+        for (let n = editorArea.childNodes.length - 1; n >= 0; n -= 1) {
+          if (n > 0) editorArea.removeChild(editorArea.childNodes[n]);
+        }
+      }, 0.25);
+      placeCaretAtEnd(document.getElementById('textContainer'));
+    }
+  };
+
   $: {
     if (!!controlClicked) typedContentArea.innerHTML = modifyHTMLContent(recentSelection);
   }
+  $: isSameTextSelected = isDuplicate;
 </script>
 
 <!-- <template> -->
@@ -91,7 +134,8 @@
         contenteditable="true"
         bind:this={editorArea}
         on:input={onTextEditorInputted}
-        on:mouseup={textSelected}>
+        on:mouseup={textSelected}
+        on:keydown={onTextEditorKeyedDown}>
         <p id="textContainer" bind:this={typedContentArea}>
           <span class="placeholder-decoration" contenteditable="false"><span>{PLACEHOLDER}</span></span><br />
         </p>
