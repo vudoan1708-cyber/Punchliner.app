@@ -6,79 +6,102 @@
   import type { SelectedText } from '../types/SelectedText';
   // import type { Control } from '../lib/ControlsUI/ControlsUI';
 
+  // Constant
+  import { PLACEHOLDER } from '../helper/constants';
+
+  // Utility
+  import { uuid, getSelection } from '../helper/utilities';
+
   export let className: string = '';
-  export let selectedText: SelectedText[] = [];
+  export let tempSelectedText: SelectedText = null;
+  export let isSameTextSelected: boolean = null;
+  // export let selectedText: SelectedText[] = [];
   export let controlClicked: boolean = false;
 
   const dispatch = createEventDispatcher();
 
-  let editorArea: HTMLTextAreaElement = null;
-  let previewArea: HTMLDivElement = null;
+  let editorArea: HTMLDivElement = null;
+  let typedContentArea: HTMLParagraphElement = null;
 
   let recentSelection: RecentSelection = null;
 
-  const modifyHTMLContent = (selection: RecentSelection): string => {
-    const replaced = `<span class="${className}">${selection.text}</span>`;
+  const strippedString = (uuid: string): string => {
+    let str = typedContentArea.querySelector(`[data-uuid="${uuid}"]`).innerHTML;
+    if ((str === null) || (str === '')) return '';
+    str = str.toString();
+          
+    // Regular expression to identify HTML tags in 
+    // the input string. Replacing the identified 
+    // HTML tag with a null string.
+    return str.replace( /(<([^>]+)>)/ig, '');
+  };
 
-    const leftMost = editorArea.value.substring(0, selection.start);
-    const rightMost = editorArea.value.substring(selection.end, editorArea.value.length);
+  const modifyHTMLContent = (selection: RecentSelection): string => {
+    let replaced: string = '';
+    if (!!isSameTextSelected) replaced = strippedString(tempSelectedText.id);
+    else replaced = `<span class="${className} ${uuid()}" data-uuid=${tempSelectedText.id}>${selection.text}</span>`;
+
+    const leftMost = editorArea.textContent.substring(0, selection.start);
+    const rightMost = editorArea.textContent.substring(selection.end, editorArea.textContent.length);
+
+    tempSelectedText = null;
 
     return `${leftMost}${replaced}${rightMost}`;
   };
 
   // Event Handlers
+  const onTextEditorInputted = (): void => {
+    if (!!typedContentArea && typedContentArea.textContent.trim().indexOf(PLACEHOLDER) > -1) {
+      typedContentArea.removeChild(document.getElementsByClassName('placeholder-decoration')[0]);
+      return;
+    }
+    if (!typedContentArea.textContent) {
+      const newPlaceholder = `<span class="placeholder-decoration" contenteditable="false"><span>${PLACEHOLDER}</span></span><br />`;
+      typedContentArea.innerHTML = newPlaceholder;
+    }
+  };
+
   const textSelected = () => {
     controlClicked = false;
-    const selected = editorArea.value.substring(editorArea.selectionStart, editorArea.selectionEnd);
+    const selected: RecentSelection =  getSelection();
 
     if (!!selected) {
       recentSelection = {
-        text: selected,
-        start: editorArea.selectionStart,
-        end: editorArea.selectionEnd,
+        _self_: selected._self_,
+        text: selected.text,
+        start: selected.start,
+        end: selected.end,
       };
       dispatch('select', selected);
     }
   };
 
-  const onTextAreaChanged = () => {
-    if (!!editorArea && !!previewArea) {
-      previewArea.innerHTML = !!recentSelection ? modifyHTMLContent(recentSelection) : editorArea.value;
-      previewArea.scrollTop = editorArea.scrollTop;
-    }
-  };
-
-  const onTextAreaScrolled = (e) => {
-    previewArea.scrollTop = e.target.scrollTop;
-  };
-
-  $: textEditable = (!!controlClicked && !!className && !!recentSelection.text);
   $: {
-    if (!!textEditable) {
-      console.log(selectedText)
-      previewArea.innerHTML = modifyHTMLContent(recentSelection);
-    }
+    if (!!controlClicked) typedContentArea.innerHTML = modifyHTMLContent(recentSelection);
   }
 </script>
 
 <!-- <template> -->
-  <form action="#" id="textEditor">
+  <div action="#" id="textEditor">
     <div id="editorWrapper">
-      <textarea
+      <div
         id="editor"
         wrap="soft"
-        placeholder="Type here..."
+        role="textbox"
+        contenteditable="true"
         bind:this={editorArea}
-        on:input={onTextAreaChanged}
-        on:scroll={onTextAreaScrolled}
-        on:mouseup={() => { textSelected(); }} />
-      <div id="preview" bind:this={previewArea}></div>
+        on:input={onTextEditorInputted}
+        on:mouseup={textSelected}>
+        <p id="textContainer" bind:this={typedContentArea}>
+          <span class="placeholder-decoration" contenteditable="false"><span>{PLACEHOLDER}</span></span><br />
+        </p>
+      </div>
     </div>
-  </form>
+  </div>
 <!-- </template> -->
 
 <style>
-  form#textEditor {
+  div#textEditor {
     position: relative;
     margin: 0;
     padding: 0;
@@ -95,11 +118,11 @@
     font-size: 12pt;
   }
 
-  #editor,
-  #preview {
+  #editor {
     position: relative;
     width: 100%;
     height: 100%;
+    display: block;
     box-sizing: border-box;
     color: var(--color-primary);
     background-color: var(--color-secondary);
@@ -110,32 +133,29 @@
     overflow-y: scroll;
     overflow-x: hidden;
     outline: none;
-    resize: none;
     word-wrap: break-word;
     white-space: pre-wrap;
     font-feature-settings: "liga" 0;
   }
 
-  #preview {
-    position: absolute;
-    top: 2px;
-    left: 2px;
+  #editorWrapper :global(.placeholder-decoration) {
+    position: relative;
+    color: var(--color-primary-light);
+    width: 100%;
     pointer-events: none;
-    /* background: transparent; */
-    background-color: rgba(0, 0, 0, 0.5);
-    padding-bottom: 35px;
+    display: block;
+    user-select: none;
+    -webkit-user-modify: read-only
   }
-
-  #preview::-webkit-scrollbar {
-    display: none;
+  #editorWrapper :global(.placeholder-decoration > span) {
+    position: absolute;
+    pointer-events: none;
   }
 
   :global(.hide) {
     filter: blur(2px);
     background-color: var(--color-primary);
     color: transparent;
-    pointer-events: all;
-    cursor: pointer;
     transition: .2s filter, .2s background-color, .2s color;
   }
   :global(.hide:hover) {

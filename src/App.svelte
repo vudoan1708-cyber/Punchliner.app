@@ -30,7 +30,6 @@
 
     // TODO: Add the selected text to the selectedText array
     selectedText = [ ...selectedText, tempSelectedText ];
-    tempSelectedText = null;
 
     className = changedControl.lookUpName;
     controlClicked = true;
@@ -43,36 +42,34 @@
     const idx = selectedText.findIndex((text) => (!!text && text.id === tempSelectedText.id));
     if (!!selectedText[idx]) {
       selectedText.splice(idx, 1);
-      tempSelectedText = null;
-      console.log(selectedText)
+
       className = changedControl.lookUpName;
       controlClicked = true;
     }
   };
 
   let tempSelectedText: SelectedText = null;
+  let isSameTextSelected: boolean = false;
   const textSelected = ({ detail }): void => {
     if (!!detail) {
       const selected = {
-        id: uuid(detail),
-        selected: detail,
-        visibility: true,
+        id: uuid(`${detail.text} ${detail.start} ${detail.end}`),
+        selected: detail.text,
       };
       tempSelectedText = { ...selected };
 
       const IDs = selectedText.map((text) => text.id);
 
-      let isDuplicate: boolean = false;
       IDs.forEach(() => {
-        [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, tempSelectedText.id);
+        [ , isSameTextSelected ] = appendingArrayWithDuplicateChecker(IDs, tempSelectedText.id);
       });
-      console.log(isDuplicate)
+
       if (selectedText.length === 0) {
         return;
       }
       // If the selected text is a duplicate, then it has been hidden away
       // Hence, the title is `Click to show`, and likewise
-      if (!!isDuplicate) modifyControls('display', {
+      if (!!isSameTextSelected) modifyControls('display', {
         lookUpName: 'hide',
         title: 'Click to show',
       });
@@ -94,7 +91,8 @@
   <section id="wrap">
     <TextEditor
       {className}
-      {selectedText}
+      {isSameTextSelected}
+      bind:tempSelectedText
       bind:controlClicked
       on:select={textSelected} />
   </section>
