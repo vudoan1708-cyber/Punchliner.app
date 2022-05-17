@@ -17,6 +17,7 @@
       title: 'Click to hide',
     },
   ];
+  let controlClicked: boolean = false;
 
   const modifyControls = (lookUpName: string, changedControl: Control) => {
     const idx = controls.findIndex((control) => control.lookUpName === lookUpName);
@@ -29,9 +30,9 @@
 
     // TODO: Add the selected text to the selectedText array
     selectedText = [ ...selectedText, tempSelectedText ];
-    tempSelectedText = null;
 
     className = changedControl.lookUpName;
+    controlClicked = true;
   };
 
   const displayContent = (lookUpName: string, changedControl: Control) => {
@@ -41,29 +42,29 @@
     const idx = selectedText.findIndex((text) => (!!text && text.id === tempSelectedText.id));
     if (!!selectedText[idx]) {
       selectedText.splice(idx, 1);
-      tempSelectedText = null;
-      console.log(selectedText)
+
       className = changedControl.lookUpName;
+      controlClicked = true;
     }
   };
 
   let tempSelectedText: SelectedText = null;
+  let isDuplicate: boolean = false;
   const textSelected = ({ detail }): void => {
     if (!!detail) {
-      const selected = {
-        id: uuid(detail),
-        selected: detail,
-        visibility: true,
+      const selected: SelectedText = {
+        id: uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()} ${detail.start} ${detail.end}`),
+        text: detail.text,
+        start: detail.start,
+        end: detail.end,
       };
       tempSelectedText = { ...selected };
 
       const IDs = selectedText.map((text) => text.id);
 
-      let isDuplicate: boolean = false;
       IDs.forEach(() => {
         [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, tempSelectedText.id);
       });
-      console.log(isDuplicate)
       if (selectedText.length === 0) {
         return;
       }
@@ -92,6 +93,9 @@
     <TextEditor
       {className}
       {selectedText}
+      {isDuplicate}
+      bind:tempSelectedText
+      bind:controlClicked
       on:select={textSelected} />
   </section>
 
