@@ -10,7 +10,8 @@
   import { PLACEHOLDER } from '../helper/constants';
 
   // Utility
-  import { uuid, getSelection } from '../helper/utilities';
+  import { uuid, getSelection, detectBrowsers } from '../helper/utilities';
+  import { BROWSER } from '../helper/constants';
 
   export let className: string = '';
   export let tempSelectedText: SelectedText = null;
@@ -19,6 +20,7 @@
   export let controlClicked: boolean = false;
 
   const dispatch = createEventDispatcher();
+  const browserName = detectBrowsers();
 
   let editorArea: HTMLDivElement = null;
   let typedContentArea: HTMLParagraphElement = null;
@@ -42,7 +44,7 @@
       const node = childNodes[i];
       if (!!node) {
         if (node.nodeName === 'P' || node.nodeName === 'BR' || node.nodeName === 'DIV') {
-          newValue += `${node.textContent}\n`;
+          newValue += `${node.textContent}\n\n`;
         }
       }
       i += 1;
@@ -79,9 +81,14 @@
       typedContentArea.removeChild(document.getElementsByClassName('placeholder-decoration')[0]);
       return;
     }
-    if (!typedContentArea.textContent) {
+    if (!typedContentArea.textContent || typedContentArea.textContent === '<empty string>') {
       const newPlaceholder = `<span class="placeholder-decoration" contenteditable="false"><span>${PLACEHOLDER}</span></span><br />`;
       typedContentArea.innerHTML = newPlaceholder;
+    }
+    //remove all br tags
+    const brs = typedContentArea.getElementsByTagName("br");
+    if (browserName === BROWSER.FIREFOX && !!brs && !!typedContentArea.textContent) {
+      for (var i = 0; i < brs.length; i += 1) { brs[i].parentNode.removeChild(brs[i]); }
     }
   };
 
@@ -102,6 +109,7 @@
 
   const onTextEditorKeyedDown = async (e) => {
     if (e.keyCode === 13 || e.code === 'Enter') {
+      // Prevent use from hitting enter when there is no content
       if (typedContentArea.textContent.trim().indexOf(PLACEHOLDER) > -1) {
         e.preventDefault();
         return;
@@ -114,7 +122,14 @@
           if (n > 0) editorArea.removeChild(editorArea.childNodes[n]);
         }
       }, 0.25);
-      placeCaretAtEnd(document.getElementById('textContainer'));
+      placeCaretAtEnd(typedContentArea);
+    }
+
+    // Prevent user from deleting the P tag
+    if ((e.keyCode === 8 || e.code == "Backspace")
+      && (e.target.textContent.trim() === PLACEHOLDER || !e.target.textContent)
+      && e.target.children.length <= 1) {
+      e.preventDefault();
     }
   };
 
@@ -129,7 +144,6 @@
     <div id="editorWrapper">
       <div
         id="editor"
-        wrap="soft"
         role="textbox"
         contenteditable="true"
         bind:this={editorArea}
@@ -188,8 +202,11 @@
     width: 100%;
     pointer-events: none;
     display: block;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
     user-select: none;
-    -webkit-user-modify: read-only
   }
   #editorWrapper :global(.placeholder-decoration > span) {
     position: absolute;
