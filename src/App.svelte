@@ -89,7 +89,6 @@
   };
 
   const triggerShortcutToHideText = () => {
-    console.log(isDuplicate)
     if (!!isDuplicate) displayContent('hide', {
       lookUpName: 'display',
       title: 'Click to hide',

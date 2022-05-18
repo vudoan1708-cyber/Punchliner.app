@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { tick, createEventDispatcher } from 'svelte';
 
   // Type
   import type { RecentSelection } from '../types/RecentSelection';
   import type { SelectedText } from '../types/SelectedText';
-  import type { Control } from '../lib/ControlsUI/ControlsUI';
+  // import type { Control } from '../lib/ControlsUI/ControlsUI';
 
   // Utilities
   import { uuid } from '../helper/utilities';
@@ -42,7 +42,7 @@
 
       let replaced: string = '';
       if (!!isSameTextSelected) replaced = strippedString(tempSelectedText.id);
-      else replaced = `<span class="${className} ${uuid()}" data-uuid=${tempSelectedText.id}>${selection.text}</span>`;
+      else replaced = `<span class="${className}" id="${uuid()}" data-uuid=${tempSelectedText.id}>${selection.text}</span>`;
   
       const leftMost = i === 0 ? editorArea.value.substring(i, selection.start) : '';
       const rightMost = editorArea.value.substring(selection.end, nextSelectionPosition);
@@ -158,7 +158,6 @@
     background-color: rgba(0, 0, 0, 0.5);
     padding-bottom: 35px;
   }
-
   #preview::-webkit-scrollbar {
     display: none;
   }
@@ -168,6 +167,7 @@
     background-color: var(--color-primary);
     color: transparent;
     pointer-events: auto;
+    cursor: pointer;
     transition: .2s filter, .2s background-color, .2s color;
   }
   :global(.hide:hover) {
