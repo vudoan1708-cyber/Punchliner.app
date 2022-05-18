@@ -13,11 +13,14 @@
   import { uuid, getSelection, detectBrowsers } from '../helper/utilities';
   import { BROWSER } from '../helper/constants';
 
+  // Utilities
+  import { uuid } from '../helper/utilities';
+
   export let className: string = '';
-  export let tempSelectedText: SelectedText = null;
-  export let isDuplicate: boolean = null;
-  // export let selectedText: SelectedText[] = [];
+  export let selectedText: SelectedText[] = [];
+  export let isDuplicate: boolean = false;
   export let controlClicked: boolean = false;
+  export let tempSelectedText: SelectedText = null;
 
   const dispatch = createEventDispatcher();
   const browserName = detectBrowsers();
@@ -27,33 +30,8 @@
 
   let recentSelection: RecentSelection = null;
 
-  const placeCaretAtEnd = (el: HTMLElement) => {
-    el.focus();
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    range.collapse(false);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-}
-
-  const replaceTagsWithBackslash = (childNodes: NodeListOf<ChildNode>): string => {
-    let newValue: string = '';
-    let i = 0;
-    while (i <= childNodes.length) {
-      const node = childNodes[i];
-      if (!!node) {
-        if (node.nodeName === 'P' || node.nodeName === 'BR' || node.nodeName === 'DIV') {
-          newValue += `${node.textContent}\n\n`;
-        }
-      }
-      i += 1;
-    }
-    return newValue;
-  };
-
   const strippedString = (uuid: string): string => {
-    let str = typedContentArea.querySelector(`[data-uuid="${uuid}"]`).innerHTML;
+    let str = previewArea.querySelector(`[data-uuid="${uuid}"]`).innerHTML;
     if ((str === null) || (str === '')) return '';
     str = str.toString();
           
@@ -63,79 +41,53 @@
     return str.replace( /(<([^>]+)>)/ig, '');
   };
 
-  const modifyHTMLContent = (selection: RecentSelection): string => {
-    let replaced: string = '';
-    if (!!isSameTextSelected) replaced = strippedString(tempSelectedText.id);
-    else replaced = `<span class="${className} ${uuid()}" data-uuid=${tempSelectedText.id}>${selection.text}</span>`;
+  const modifyHTMLContent = (): string => {
+    let wholeContent: string = '';
 
-    const leftMost = editorArea.textContent.substring(0, selection.start);
-    const rightMost = editorArea.textContent.substring(selection.end, editorArea.textContent.length);
+    for (let i = 0; i < selectedText.length; i += 1) {
+      const selection: RecentSelection = selectedText[i];
+      const nextSelectionPosition: number = !!selectedText[i + 1] ? selectedText[i + 1].start : editorArea.value.length;
+
+      let replaced: string = '';
+      if (!!isSameTextSelected) replaced = strippedString(tempSelectedText.id);
+      else replaced = `<span class="${className} ${uuid()}" data-uuid=${tempSelectedText.id}>${selection.text}</span>`;
+  
+      const leftMost = i === 0 ? editorArea.value.substring(i, selection.start) : '';
+      const rightMost = editorArea.value.substring(selection.end, nextSelectionPosition);
+      wholeContent += `${leftMost}${replaced}${rightMost}`;
+    }
     tempSelectedText = null;
 
-    return `${leftMost}${replaced}${rightMost}`;
+    return wholeContent;
   };
 
   // Event Handlers
-  const onTextEditorInputted = (): void => {
-    if (!!typedContentArea && typedContentArea.textContent.trim().indexOf(PLACEHOLDER) > -1) {
-      typedContentArea.removeChild(document.getElementsByClassName('placeholder-decoration')[0]);
-      return;
-    }
-    if (!typedContentArea.textContent || typedContentArea.textContent === '<empty string>') {
-      const newPlaceholder = `<span class="placeholder-decoration" contenteditable="false"><span>${PLACEHOLDER}</span></span><br />`;
-      typedContentArea.innerHTML = newPlaceholder;
-    }
-    //remove all br tags
-    const brs = typedContentArea.getElementsByTagName("br");
-    if (browserName === BROWSER.FIREFOX && !!brs && !!typedContentArea.textContent) {
-      for (var i = 0; i < brs.length; i += 1) { brs[i].parentNode.removeChild(brs[i]); }
-    }
-  };
-
   const textSelected = () => {
     controlClicked = false;
-    const selected: RecentSelection =  getSelection();
-    console.log(selected);
+    const selected = editorArea.value.substring(editorArea.selectionStart, editorArea.selectionEnd);
+
     if (!!selected) {
       recentSelection = {
-        _self_: selected._self_,
         text: selected.text,
         start: selected.start,
         end: selected.end,
       };
-      dispatch('select', selected);
+      dispatch('select', recentSelection);
     }
   };
 
-  const onTextEditorKeyedDown = async (e) => {
-    if (e.keyCode === 13 || e.code === 'Enter') {
-      // Prevent use from hitting enter when there is no content
-      if (typedContentArea.textContent.trim().indexOf(PLACEHOLDER) > -1) {
-        e.preventDefault();
-        return;
-      }
-      await tick();
-      const replaced = replaceTagsWithBackslash(editorArea.childNodes);
-      typedContentArea.innerHTML = replaced;
-      setTimeout(() => {
-        for (let n = editorArea.childNodes.length - 1; n >= 0; n -= 1) {
-          if (n > 0) editorArea.removeChild(editorArea.childNodes[n]);
-        }
-      }, 0.25);
-      placeCaretAtEnd(typedContentArea);
-    }
-
-    // Prevent user from deleting the P tag
-    if ((e.keyCode === 8 || e.code == "Backspace")
-      && (e.target.textContent.trim() === PLACEHOLDER || !e.target.textContent)
-      && e.target.children.length <= 1) {
-      e.preventDefault();
+  const onTextAreaChanged = () => {
+    if (!!editorArea && !!previewArea) {
+      previewArea.innerHTML = !!recentSelection
+        ? previewArea.innerHTML + editorArea.value.substring(previewArea.textContent.length, editorArea.value.length)
+        : editorArea.value;
+      previewArea.scrollTop = editorArea.scrollTop;
     }
   };
 
   $: {
-    if (!!controlClicked) typedContentArea.innerHTML = modifyHTMLContent(recentSelection);
-  }
+    if (!!controlClicked) previewArea.innerHTML = modifyHTMLContent();
+  };
   $: isSameTextSelected = isDuplicate;
 </script>
 
@@ -217,6 +169,7 @@
     filter: blur(2px);
     background-color: var(--color-primary);
     color: transparent;
+    pointer-events: auto;
     transition: .2s filter, .2s background-color, .2s color;
   }
   :global(.hide:hover) {

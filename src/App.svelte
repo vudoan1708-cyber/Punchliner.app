@@ -52,20 +52,19 @@
   let isDuplicate: boolean = false;
   const textSelected = ({ detail }): void => {
     if (!!detail) {
-      const selected = {
+      const selected: SelectedText = {
         id: uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()} ${detail.start} ${detail.end}`),
-        selected: detail.text,
+        text: detail.text,
+        start: detail.start,
+        end: detail.end,
       };
       tempSelectedText = { ...selected };
 
       const IDs = selectedText.map((text) => text.id);
 
-      if (IDs.length > 0) {
-        IDs.forEach(() => {
-          [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, tempSelectedText.id);
-        });
-      } else isDuplicate = false;
-
+      IDs.forEach(() => {
+        [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, tempSelectedText.id);
+      });
       if (selectedText.length === 0) {
         return;
       }
@@ -93,6 +92,7 @@
   <section id="wrap">
     <TextEditor
       {className}
+      {selectedText}
       {isDuplicate}
       bind:tempSelectedText
       bind:controlClicked

@@ -1,4 +1,5 @@
-export type SelectedText = {
+import type { RecentSelection } from "./RecentSelection";
+
+export type SelectedText = RecentSelection & {
   id: string;
-  selected: string;
 };
