@@ -1,10 +1,17 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { tick, createEventDispatcher } from 'svelte';
 
   // Type
   import type { RecentSelection } from '../types/RecentSelection';
   import type { SelectedText } from '../types/SelectedText';
-  import type { Control } from '../lib/ControlsUI/ControlsUI';
+  // import type { Control } from '../lib/ControlsUI/ControlsUI';
+
+  // Constant
+  import { PLACEHOLDER } from '../helper/constants';
+
+  // Utility
+  import { uuid, getSelection, detectBrowsers } from '../helper/utilities';
+  import { BROWSER } from '../helper/constants';
 
   // Utilities
   import { uuid } from '../helper/utilities';
@@ -16,9 +23,10 @@
   export let tempSelectedText: SelectedText = null;
 
   const dispatch = createEventDispatcher();
+  const browserName = detectBrowsers();
 
-  let editorArea: HTMLTextAreaElement = null;
-  let previewArea: HTMLDivElement = null;
+  let editorArea: HTMLDivElement = null;
+  let typedContentArea: HTMLParagraphElement = null;
 
   let recentSelection: RecentSelection = null;
 
@@ -60,9 +68,9 @@
 
     if (!!selected) {
       recentSelection = {
-        text: selected,
-        start: editorArea.selectionStart,
-        end: editorArea.selectionEnd,
+        text: selected.text,
+        start: selected.start,
+        end: selected.end,
       };
       dispatch('select', recentSelection);
     }
@@ -77,10 +85,6 @@
     }
   };
 
-  const onTextAreaScrolled = (e) => {
-    previewArea.scrollTop = e.target.scrollTop;
-  };
-
   $: {
     if (!!controlClicked) previewArea.innerHTML = modifyHTMLContent();
   };
@@ -88,23 +92,26 @@
 </script>
 
 <!-- <template> -->
-  <form action="#" id="textEditor">
+  <div action="#" id="textEditor">
     <div id="editorWrapper">
-      <textarea
+      <div
         id="editor"
-        wrap="soft"
-        placeholder="Type here..."
+        role="textbox"
+        contenteditable="true"
         bind:this={editorArea}
-        on:input={onTextAreaChanged}
-        on:scroll={onTextAreaScrolled}
-        on:mouseup={() => { textSelected(); }} />
-      <div id="preview" bind:this={previewArea}></div>
+        on:input={onTextEditorInputted}
+        on:mouseup={textSelected}
+        on:keydown={onTextEditorKeyedDown}>
+        <p id="textContainer" bind:this={typedContentArea}>
+          <span class="placeholder-decoration" contenteditable="false"><span>{PLACEHOLDER}</span></span><br />
+        </p>
+      </div>
     </div>
-  </form>
+  </div>
 <!-- </template> -->
 
 <style>
-  form#textEditor {
+  div#textEditor {
     position: relative;
     margin: 0;
     padding: 0;
@@ -121,11 +128,11 @@
     font-size: 12pt;
   }
 
-  #editor,
-  #preview {
+  #editor {
     position: relative;
     width: 100%;
     height: 100%;
+    display: block;
     box-sizing: border-box;
     color: var(--color-primary);
     background-color: var(--color-secondary);
@@ -136,24 +143,26 @@
     overflow-y: scroll;
     overflow-x: hidden;
     outline: none;
-    resize: none;
     word-wrap: break-word;
     white-space: pre-wrap;
     font-feature-settings: "liga" 0;
   }
 
-  #preview {
-    position: absolute;
-    top: 2px;
-    left: 2px;
+  #editorWrapper :global(.placeholder-decoration) {
+    position: relative;
+    color: var(--color-primary-light);
+    width: 100%;
     pointer-events: none;
-    /* background: transparent; */
-    background-color: rgba(0, 0, 0, 0.5);
-    padding-bottom: 35px;
+    display: block;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
   }
-
-  #preview::-webkit-scrollbar {
-    display: none;
+  #editorWrapper :global(.placeholder-decoration > span) {
+    position: absolute;
+    pointer-events: none;
   }
 
   :global(.hide) {
