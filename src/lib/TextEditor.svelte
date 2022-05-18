@@ -81,6 +81,12 @@
     previewArea.scrollTop = e.target.scrollTop;
   };
 
+  const onTextAreaKeyboardEvent = (e) => {
+    if ((e.keyCode === 66 || e.code === 'KeyB') && !!e.ctrlKey) {
+      dispatch('ctrlB');
+    }
+  };
+
   $: {
     if (!!controlClicked) previewArea.innerHTML = modifyHTMLContent();
   };
@@ -97,7 +103,8 @@
         bind:this={editorArea}
         on:input={onTextAreaChanged}
         on:scroll={onTextAreaScrolled}
-        on:mouseup={() => { textSelected(); }} />
+        on:mouseup={textSelected}
+        on:keyup={onTextAreaKeyboardEvent} />
       <div id="preview" bind:this={previewArea}></div>
     </div>
   </form>

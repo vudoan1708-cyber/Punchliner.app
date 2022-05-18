@@ -48,6 +48,7 @@
     }
   };
 
+  // Event Handlers
   let tempSelectedText: SelectedText = null;
   let isDuplicate: boolean = false;
   const textSelected = ({ detail }): void => {
@@ -69,7 +70,7 @@
         return;
       }
       // If the selected text is a duplicate, then it has been hidden away
-      // Hence, the title is `Click to show`, and likewise
+      // Hence, switching the lookup name to `hide` and the title to `Click to show`, and likewise
       if (!!isDuplicate) modifyControls('display', {
         lookUpName: 'hide',
         title: 'Click to show',
@@ -86,6 +87,18 @@
       title: 'Click to hide',
     });
   };
+
+  const triggerShortcutToHideText = () => {
+    console.log(isDuplicate)
+    if (!!isDuplicate) displayContent('hide', {
+      lookUpName: 'display',
+      title: 'Click to hide',
+    });
+    else hideContent('display', {
+      lookUpName: 'hide',
+      title: 'Click to show',
+    });
+  };
 </script>
 
 <main>
@@ -96,7 +109,8 @@
       {isDuplicate}
       bind:tempSelectedText
       bind:controlClicked
-      on:select={textSelected} />
+      on:select={textSelected}
+      on:ctrlB={triggerShortcutToHideText} />
   </section>
 
   <section id="controls_wrap">
