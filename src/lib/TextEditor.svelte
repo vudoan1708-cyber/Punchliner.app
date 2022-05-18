@@ -7,8 +7,8 @@
 
   export let className: string = '';
   export let selectedText: SelectedText[] = [];
-  export let controlClicked: boolean = false;
   export let tempSelectedText: SelectedText = null;
+  export let controlClicked: boolean = false;
 
   const dispatch = createEventDispatcher();
 
@@ -42,8 +42,8 @@
   const modifyHTMLContent = (numOfAddedCharacters: number): string => {
     let wholeContent: string = '';
 
-    let i = 0;
-    while (i < selectedText.length) {
+    let strippedStringAtIndx: number = -1;
+    for (let i = 0; i < selectedText.length; i += 1) {
       const selection: SelectedText = selectedText[i];
       const curSelectionPosition: number = i === 0 ? 0 : selection.start;
       const nextSelectionPosition: number = !!selectedText[i + 1] ? selectedText[i + 1].start : editorArea.value.length;
@@ -51,10 +51,9 @@
       let replaced: string = '';
       if (!!selection.wasHidden) {
         replaced = strippedString(selection.id);
-        dispatch('tag-strip', i);
+        strippedStringAtIndx = i;
       }
       else replaced = `<span class="${className}" id="${selection.id}" data-uuid=${selection.id}>${selection.text}</span>`;
-      console.log(editorArea.selectionStart, selection.start)
       if (editorArea.selectionStart <= selection.start) {
         selection.start += numOfAddedCharacters;
         selection.end += numOfAddedCharacters;
@@ -63,11 +62,9 @@
       const leftMost: string = editorArea.value.substring(curSelectionPosition, selection.start);
       const rightMost: string = editorArea.value.substring(selection.end, nextSelectionPosition);
       wholeContent += `${leftMost}${replaced}${rightMost}`;
-      console.log(replaced)
-
-      i += 1;
     }
     tempSelectedText = null;
+    if (strippedStringAtIndx > -1) dispatch('tag-strip', strippedStringAtIndx);
 
     return wholeContent;
   };

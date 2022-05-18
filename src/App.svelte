@@ -122,7 +122,7 @@
   <section id="wrap">
     <TextEditor
       {className}
-      bind:selectedText
+      {selectedText}
       bind:tempSelectedText
       bind:controlClicked
       on:select={textSelected}
