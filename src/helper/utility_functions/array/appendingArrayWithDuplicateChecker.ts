@@ -10,7 +10,6 @@
  * @return  {any[]}  array with no duplicate
  */
  export default (array: Array<any>, item: any): Array<any> => {
-  if (array.length === 0) return [ [ item ], false ];
   const uniques: Set<any> = new Set(array);
   const isDuplicate: boolean = uniques.has(item);
   uniques.add(item);

@@ -4,14 +4,9 @@
   // Type
   import type { RecentSelection } from '../types/RecentSelection';
   import type { SelectedText } from '../types/SelectedText';
-  // import type { Control } from '../lib/ControlsUI/ControlsUI';
-
-  // Utilities
-  import { uuid } from '../helper/utilities';
 
   export let className: string = '';
   export let selectedText: SelectedText[] = [];
-  export let isDuplicate: boolean = false;
   export let controlClicked: boolean = false;
   export let tempSelectedText: SelectedText = null;
 
@@ -22,9 +17,20 @@
 
   let recentSelection: RecentSelection = null;
 
+  const appendClickEvent = () => {
+    const newlyCreatedElements = document.querySelectorAll('.hide');
+
+    Array.from(newlyCreatedElements).forEach((element, idx) => {
+      element.addEventListener('click', () => {
+        controlClicked = false;
+        dispatch('text-click', selectedText[idx]);
+    });
+    });
+  };
+
   const strippedString = (uuid: string): string => {
-    let str = previewArea.querySelector(`[data-uuid="${uuid}"]`).innerHTML;
-    if ((str === null) || (str === '')) return '';
+    let str = previewArea.querySelector(`[data-uuid="${uuid}"]`)?.innerHTML;
+    if (!str) return '';
     str = str.toString();
           
     // Regular expression to identify HTML tags in 
@@ -36,22 +42,30 @@
   const modifyHTMLContent = (numOfAddedCharacters: number): string => {
     let wholeContent: string = '';
 
-    for (let i = 0; i < selectedText.length; i += 1) {
+    let i = 0;
+    while (i < selectedText.length) {
       const selection: SelectedText = selectedText[i];
-      const curSelectionPosition: number = i === 0 ? 0 : selectedText[i].start;
+      const curSelectionPosition: number = i === 0 ? 0 : selection.start;
       const nextSelectionPosition: number = !!selectedText[i + 1] ? selectedText[i + 1].start : editorArea.value.length;
-
+  
       let replaced: string = '';
-      if (!!isSameTextSelected) replaced = strippedString(selection.id);
-      else replaced = `<span class="${className}" id="${uuid()}" data-uuid=${selection.id}>${selection.text}</span>`;
-      
+      if (!!selection.wasHidden) {
+        replaced = strippedString(selection.id);
+        dispatch('tag-strip', i);
+      }
+      else replaced = `<span class="${className}" id="${selection.id}" data-uuid=${selection.id}>${selection.text}</span>`;
+      console.log(editorArea.selectionStart, selection.start)
       if (editorArea.selectionStart <= selection.start) {
         selection.start += numOfAddedCharacters;
         selection.end += numOfAddedCharacters;
       }
-      const leftMost = editorArea.value.substring(curSelectionPosition, selection.start);
-      const rightMost = editorArea.value.substring(selection.end, nextSelectionPosition);
+      // This either stays at one place, or one character before the newly added start position
+      const leftMost: string = editorArea.value.substring(curSelectionPosition, selection.start);
+      const rightMost: string = editorArea.value.substring(selection.end, nextSelectionPosition);
       wholeContent += `${leftMost}${replaced}${rightMost}`;
+      console.log(replaced)
+
+      i += 1;
     }
     tempSelectedText = null;
 
@@ -62,7 +76,7 @@
   const textSelected = () => {
     controlClicked = false;
     const selected = editorArea.value.substring(editorArea.selectionStart, editorArea.selectionEnd);
-    console.log(editorArea.selectionStart)
+
     if (!!selected) {
       recentSelection = {
         text: selected,
@@ -75,7 +89,9 @@
 
   const onTextAreaChanged = (e) => {
     if (!!editorArea && !!previewArea) {
-      previewArea.innerHTML = !!recentSelection ? modifyHTMLContent(!!e.data ? e.data.length : 1) : editorArea.value;
+      previewArea.innerHTML = (!!recentSelection && selectedText.length > 0)
+        ? modifyHTMLContent(!!e.data ? e.data.length : 1)
+        : editorArea.value;
       previewArea.scrollTop = editorArea.scrollTop;
     }
   };
@@ -91,9 +107,11 @@
   };
 
   $: {
-    if (!!controlClicked) previewArea.innerHTML = modifyHTMLContent(0);
+    if (!!controlClicked) {
+      previewArea.innerHTML = modifyHTMLContent(0);
+      appendClickEvent();
+    }
   };
-  $: isSameTextSelected = isDuplicate;
 </script>
 
 <!-- <template> -->

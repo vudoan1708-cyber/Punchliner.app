@@ -30,44 +30,46 @@
   const hideContent = (lookUpName: string, changedControl: Control) => {
     modifyControls(lookUpName, changedControl);
 
-    // TODO: Add the selected text to the selectedText array
     selectedText = orderByStartingPosition([ ...selectedText, tempSelectedText ]);
-
     className = changedControl.lookUpName;
     controlClicked = true;
   };
 
-  const displayContent = (lookUpName: string, changedControl: Control) => {
+  const displayContent = (lookUpName: string, changedControl: Control, selected: SelectedText) => {
     modifyControls(lookUpName, changedControl);
-
-    // TODO: Remove the most recent selected text form the selectedText array
-    const idx = selectedText.findIndex((text) => (!!text && text.id === tempSelectedText.id));
+    
+    const idx = selectedText.findIndex((text) => (!!text && text.id === selected.id));
     if (!!selectedText[idx]) {
-      selectedText.splice(idx, 1);
-
-      className = changedControl.lookUpName;
+      selectedText[idx].wasHidden = selected.wasHidden;
       controlClicked = true;
     }
   };
+
+  const idGenerator = (detail) => uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()} ${detail.start} ${detail.end}`);
 
   // Event Handlers
   let tempSelectedText: SelectedText = null;
   let isDuplicate: boolean = false;
   const textSelected = ({ detail }): void => {
     if (!!detail) {
+      const IDs = selectedText.map((text) => text.id);
+
+      const newID = idGenerator(detail);
+      if (IDs.length > 0) {
+        IDs.forEach(() => {
+          [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, newID);
+        });
+      } else isDuplicate = false;
+
       const selected: SelectedText = {
-        id: uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()} ${detail.start} ${detail.end}`),
+        id: newID,
         text: detail.text,
         start: detail.start,
         end: detail.end,
+        wasHidden: isDuplicate,
       };
       tempSelectedText = { ...selected };
 
-      const IDs = selectedText.map((text) => text.id);
-
-      IDs.forEach(() => {
-        [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, tempSelectedText.id);
-      });
       if (selectedText.length === 0) {
         return;
       }
@@ -90,15 +92,29 @@
     });
   };
 
-  const triggerShortcutToHideText = () => {
+  const triggerShortcutToHideText = (text: SelectedText) => {
     if (!!isDuplicate) displayContent('hide', {
       lookUpName: 'display',
       title: 'Click to hide',
-    });
+    }, text);
     else hideContent('display', {
       lookUpName: 'hide',
       title: 'Click to show',
     });
+  };
+
+  const triggerMouseClickToDisplayText = ({ detail }) => {
+    const IDs = selectedText.map((text) => text.id);
+
+    IDs.forEach(() => {
+      [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, detail.id);
+    });
+    detail.wasHidden = isDuplicate;
+    triggerShortcutToHideText(detail);
+  };
+
+  const removeSelectedText = ({ detail }) => {
+    selectedText = selectedText.filter((__, idx) => idx !== detail);
   };
 </script>
 
@@ -106,12 +122,13 @@
   <section id="wrap">
     <TextEditor
       {className}
-      {selectedText}
-      {isDuplicate}
+      bind:selectedText
       bind:tempSelectedText
       bind:controlClicked
       on:select={textSelected}
-      on:ctrlB={triggerShortcutToHideText} />
+      on:ctrlB={() => { triggerShortcutToHideText(tempSelectedText); }}
+      on:text-click={triggerMouseClickToDisplayText}
+      on:tag-strip={removeSelectedText} />
   </section>
 
   <section id="controls_wrap">
@@ -121,7 +138,7 @@
       on:hide-click={() => { displayContent('hide', {
         lookUpName: 'display',
         title: 'Click to hide',
-      }); }}
+      }, tempSelectedText); }}
       on:display-click={() => { hideContent('display', {
         lookUpName: 'hide',
         title: 'Click to show',
