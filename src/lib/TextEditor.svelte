@@ -6,13 +6,6 @@
   import type { SelectedText } from '../types/SelectedText';
   // import type { Control } from '../lib/ControlsUI/ControlsUI';
 
-  // Constant
-  import { PLACEHOLDER } from '../helper/constants';
-
-  // Utility
-  import { uuid, getSelection, detectBrowsers } from '../helper/utilities';
-  import { BROWSER } from '../helper/constants';
-
   // Utilities
   import { uuid } from '../helper/utilities';
 
@@ -23,10 +16,9 @@
   export let tempSelectedText: SelectedText = null;
 
   const dispatch = createEventDispatcher();
-  const browserName = detectBrowsers();
 
-  let editorArea: HTMLDivElement = null;
-  let typedContentArea: HTMLParagraphElement = null;
+  let editorArea: HTMLTextAreaElement = null;
+  let previewArea: HTMLDivElement = null;
 
   let recentSelection: RecentSelection = null;
 
@@ -50,7 +42,7 @@
 
       let replaced: string = '';
       if (!!isSameTextSelected) replaced = strippedString(tempSelectedText.id);
-      else replaced = `<span class="${className} ${uuid()}" data-uuid=${tempSelectedText.id}>${selection.text}</span>`;
+      else replaced = `<span class="${className}" id="${uuid()}" data-uuid=${tempSelectedText.id}>${selection.text}</span>`;
   
       const leftMost = i === 0 ? editorArea.value.substring(i, selection.start) : '';
       const rightMost = editorArea.value.substring(selection.end, nextSelectionPosition);
@@ -68,9 +60,9 @@
 
     if (!!selected) {
       recentSelection = {
-        text: selected.text,
-        start: selected.start,
-        end: selected.end,
+        text: selected,
+        start: editorArea.selectionStart,
+        end: editorArea.selectionEnd,
       };
       dispatch('select', recentSelection);
     }
@@ -85,6 +77,16 @@
     }
   };
 
+  const onTextAreaScrolled = (e) => {
+    previewArea.scrollTop = e.target.scrollTop;
+  };
+
+  const onTextAreaKeyboardEvent = (e) => {
+    if ((e.keyCode === 66 || e.code === 'KeyB') && !!e.ctrlKey) {
+      dispatch('ctrlB');
+    }
+  };
+
   $: {
     if (!!controlClicked) previewArea.innerHTML = modifyHTMLContent();
   };
@@ -92,26 +94,24 @@
 </script>
 
 <!-- <template> -->
-  <div action="#" id="textEditor">
+  <form action="#" id="textEditor">
     <div id="editorWrapper">
-      <div
+      <textarea
         id="editor"
-        role="textbox"
-        contenteditable="true"
+        wrap="soft"
+        placeholder="Type here..."
         bind:this={editorArea}
-        on:input={onTextEditorInputted}
+        on:input={onTextAreaChanged}
+        on:scroll={onTextAreaScrolled}
         on:mouseup={textSelected}
-        on:keydown={onTextEditorKeyedDown}>
-        <p id="textContainer" bind:this={typedContentArea}>
-          <span class="placeholder-decoration" contenteditable="false"><span>{PLACEHOLDER}</span></span><br />
-        </p>
-      </div>
+        on:keyup={onTextAreaKeyboardEvent} />
+      <div id="preview" bind:this={previewArea}></div>
     </div>
-  </div>
+  </form>
 <!-- </template> -->
 
 <style>
-  div#textEditor {
+  form#textEditor {
     position: relative;
     margin: 0;
     padding: 0;
@@ -128,11 +128,11 @@
     font-size: 12pt;
   }
 
-  #editor {
+  #editor,
+  #preview {
     position: relative;
     width: 100%;
     height: 100%;
-    display: block;
     box-sizing: border-box;
     color: var(--color-primary);
     background-color: var(--color-secondary);
@@ -143,26 +143,23 @@
     overflow-y: scroll;
     overflow-x: hidden;
     outline: none;
+    resize: none;
     word-wrap: break-word;
     white-space: pre-wrap;
     font-feature-settings: "liga" 0;
   }
 
-  #editorWrapper :global(.placeholder-decoration) {
-    position: relative;
-    color: var(--color-primary-light);
-    width: 100%;
-    pointer-events: none;
-    display: block;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-  }
-  #editorWrapper :global(.placeholder-decoration > span) {
+  #preview {
     position: absolute;
+    top: 2px;
+    left: 2px;
     pointer-events: none;
+    /* background: transparent; */
+    background-color: rgba(0, 0, 0, 0.5);
+    padding-bottom: 35px;
+  }
+  #preview::-webkit-scrollbar {
+    display: none;
   }
 
   :global(.hide) {
@@ -170,6 +167,7 @@
     background-color: var(--color-primary);
     color: transparent;
     pointer-events: auto;
+    cursor: pointer;
     transition: .2s filter, .2s background-color, .2s color;
   }
   :global(.hide:hover) {
