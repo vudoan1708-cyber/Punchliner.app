@@ -20,12 +20,14 @@
   const appendClickEvent = () => {
     const newlyCreatedElements = document.querySelectorAll('.hide');
 
-    Array.from(newlyCreatedElements).forEach((element, idx) => {
-      element.addEventListener('click', () => {
-        controlClicked = false;
-        dispatch('text-click', selectedText[idx]);
-    });
-    });
+    if (!!newlyCreatedElements) {
+      Array.from(newlyCreatedElements).forEach((element, idx) => {
+        element.addEventListener('click', () => {
+          controlClicked = false;
+          dispatch('text-click', selectedText[idx]);
+        });
+      });
+    }
   };
 
   const strippedString = (uuid: string): string => {
@@ -69,6 +71,11 @@
     return wholeContent;
   };
 
+  const characterCounts = (num: number): number => {
+    if (pasted) return pasted.length;
+    return num;
+  };
+
   // Event Handlers
   const textSelected = () => {
     controlClicked = false;
@@ -84,10 +91,12 @@
     }
   };
 
+  let isWritting: boolean = false;
   const onTextAreaChanged = (e) => {
+    if (!isWritting) isWritting = true;
     if (!!editorArea && !!previewArea) {
       previewArea.innerHTML = (!!recentSelection && selectedText.length > 0)
-        ? modifyHTMLContent(!!e.data ? e.data.length : 1)
+        ? modifyHTMLContent(characterCounts(!!e.data ? e.data.length : 1))
         : editorArea.value;
       previewArea.scrollTop = editorArea.scrollTop;
     }
@@ -101,6 +110,19 @@
     if ((e.keyCode === 66 || e.code === 'KeyB') && !!e.ctrlKey) {
       dispatch('ctrlB');
     }
+  };
+
+  const onTextAreaMouseMoved = () => {
+    if (!!isWritting) {
+      isWritting = false;
+      appendClickEvent();
+    }
+  };
+
+  let pasted: string = null;
+  const onTextAreaPasted = (e) => {
+    // @ts-ignore
+    pasted = (e.clipboardData || window.clipboardData).getData('text');
   };
 
   $: {
@@ -122,7 +144,9 @@
         on:input={onTextAreaChanged}
         on:scroll={onTextAreaScrolled}
         on:click={textSelected}
-        on:keyup={onTextAreaKeyboardEvent} />
+        on:keyup={onTextAreaKeyboardEvent}
+        on:mousemove={onTextAreaMouseMoved}
+        on:paste={onTextAreaPasted} />
       <div id="preview" bind:this={previewArea}></div>
     </div>
   </form>
@@ -165,6 +189,11 @@
     word-wrap: break-word;
     white-space: pre-wrap;
     font-feature-settings: "liga" 0;
+  }
+
+  #editor {
+    color: transparent;
+    caret-color: var(--color-primary);
   }
 
   #preview {
