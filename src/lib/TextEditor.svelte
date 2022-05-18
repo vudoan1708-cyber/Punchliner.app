@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tick, createEventDispatcher } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
 
   // Type
   import type { RecentSelection } from '../types/RecentSelection';
@@ -33,18 +33,23 @@
     return str.replace( /(<([^>]+)>)/ig, '');
   };
 
-  const modifyHTMLContent = (): string => {
+  const modifyHTMLContent = (numOfAddedCharacters: number): string => {
     let wholeContent: string = '';
 
     for (let i = 0; i < selectedText.length; i += 1) {
-      const selection: RecentSelection = selectedText[i];
+      const selection: SelectedText = selectedText[i];
+      const curSelectionPosition: number = i === 0 ? 0 : selectedText[i].start;
       const nextSelectionPosition: number = !!selectedText[i + 1] ? selectedText[i + 1].start : editorArea.value.length;
 
       let replaced: string = '';
-      if (!!isSameTextSelected) replaced = strippedString(tempSelectedText.id);
-      else replaced = `<span class="${className}" id="${uuid()}" data-uuid=${tempSelectedText.id}>${selection.text}</span>`;
-  
-      const leftMost = i === 0 ? editorArea.value.substring(i, selection.start) : '';
+      if (!!isSameTextSelected) replaced = strippedString(selection.id);
+      else replaced = `<span class="${className}" id="${uuid()}" data-uuid=${selection.id}>${selection.text}</span>`;
+      
+      if (editorArea.selectionStart <= selection.start) {
+        selection.start += numOfAddedCharacters;
+        selection.end += numOfAddedCharacters;
+      }
+      const leftMost = editorArea.value.substring(curSelectionPosition, selection.start);
       const rightMost = editorArea.value.substring(selection.end, nextSelectionPosition);
       wholeContent += `${leftMost}${replaced}${rightMost}`;
     }
@@ -57,7 +62,7 @@
   const textSelected = () => {
     controlClicked = false;
     const selected = editorArea.value.substring(editorArea.selectionStart, editorArea.selectionEnd);
-
+    console.log(editorArea.selectionStart)
     if (!!selected) {
       recentSelection = {
         text: selected,
@@ -68,11 +73,9 @@
     }
   };
 
-  const onTextAreaChanged = () => {
+  const onTextAreaChanged = (e) => {
     if (!!editorArea && !!previewArea) {
-      previewArea.innerHTML = !!recentSelection
-        ? previewArea.innerHTML + editorArea.value.substring(previewArea.textContent.length, editorArea.value.length)
-        : editorArea.value;
+      previewArea.innerHTML = !!recentSelection ? modifyHTMLContent(!!e.data ? e.data.length : 1) : editorArea.value;
       previewArea.scrollTop = editorArea.scrollTop;
     }
   };
@@ -88,7 +91,7 @@
   };
 
   $: {
-    if (!!controlClicked) previewArea.innerHTML = modifyHTMLContent();
+    if (!!controlClicked) previewArea.innerHTML = modifyHTMLContent(0);
   };
   $: isSameTextSelected = isDuplicate;
 </script>
@@ -103,7 +106,7 @@
         bind:this={editorArea}
         on:input={onTextAreaChanged}
         on:scroll={onTextAreaScrolled}
-        on:mouseup={textSelected}
+        on:click={textSelected}
         on:keyup={onTextAreaKeyboardEvent} />
       <div id="preview" bind:this={previewArea}></div>
     </div>

@@ -19,6 +19,8 @@
   ];
   let controlClicked: boolean = false;
 
+  const orderByStartingPosition = (array: SelectedText[]) => array.sort((a, b) => a.start - b.start);
+
   const modifyControls = (lookUpName: string, changedControl: Control) => {
     const idx = controls.findIndex((control) => control.lookUpName === lookUpName);
     controls = swapArrayItems(controls, idx, changedControl);
@@ -29,7 +31,7 @@
     modifyControls(lookUpName, changedControl);
 
     // TODO: Add the selected text to the selectedText array
-    selectedText = [ ...selectedText, tempSelectedText ];
+    selectedText = orderByStartingPosition([ ...selectedText, tempSelectedText ]);
 
     className = changedControl.lookUpName;
     controlClicked = true;
