@@ -56,7 +56,9 @@
         strippedStringAtIndx = i;
       }
       else replaced = `<span class="${className}" id="${selection.id}" data-uuid=${selection.id}>${selection.text}</span>`;
-      if (editorArea.selectionStart <= selection.start) {
+
+      const editorOriginalCaretPosition = editorArea.selectionStart - (!!pasted ? pasted.length : 0);
+      if (editorOriginalCaretPosition <= selection.start) {
         selection.start += numOfAddedCharacters;
         selection.end += numOfAddedCharacters;
       }
@@ -66,14 +68,17 @@
       wholeContent += `${leftMost}${replaced}${rightMost}`;
     }
     tempSelectedText = null;
+    pasted = null;
     if (strippedStringAtIndx > -1) dispatch('tag-strip', strippedStringAtIndx);
 
     return wholeContent;
   };
 
-  const characterCounts = (num: number): number => {
-    if (pasted) return pasted.length;
-    return num;
+  const characterCounts = (e: InputEvent): number => {
+    if (!!pasted) return pasted.length;
+    // TODO include deleteContentForward / deleteContentBackward
+    if (e.inputType.indexOf('deleteContent') > -1) return -1;
+    return !!e.data ? e.data.length : 1;
   };
 
   // Event Handlers
@@ -96,7 +101,7 @@
     if (!isWritting) isWritting = true;
     if (!!editorArea && !!previewArea) {
       previewArea.innerHTML = (!!recentSelection && selectedText.length > 0)
-        ? modifyHTMLContent(characterCounts(!!e.data ? e.data.length : 1))
+        ? modifyHTMLContent(characterCounts(e))
         : editorArea.value;
       previewArea.scrollTop = editorArea.scrollTop;
     }
