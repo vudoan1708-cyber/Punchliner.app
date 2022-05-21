@@ -47,8 +47,11 @@
     let strippedStringAtIndx: number = -1;
     for (let i = 0; i < selectedText.length; i += 1) {
       const selection: SelectedText = selectedText[i];
-      const curSelectionPosition: number = i === 0 ? 0 : selection.start;
-      const nextSelectionPosition: number = !!selectedText[i + 1] ? selectedText[i + 1].start : editorArea.value.length;
+      const prevSelectionUpdatedEndPosition: number = !!selectedText[i - 1] ? selectedText[i - 1].end : 0;
+      const curSelectionStartPosition: number = i === 0 ? 0 : selection.start;
+      const nextSelectionStartPosition: number = !!selectedText[i + 1]
+        ? selectedText[i + 1].start
+        : editorArea.value.length;
   
       let replaced: string = '';
       if (!!selection.wasHidden) {
@@ -57,14 +60,18 @@
       }
       else replaced = `<span class="${className}" id="${selection.id}" data-uuid=${selection.id}>${selection.text}</span>`;
 
-      const editorOriginalCaretPosition = editorArea.selectionStart - (!!pasted ? pasted.length : 0);
-      if (editorOriginalCaretPosition <= selection.start) {
+      const editorActualCaretPosition = editorArea.selectionStart - (!!pasted ? pasted.length : numOfAddedCharacters);
+      if (editorActualCaretPosition <= selection.start) {
         selection.start += numOfAddedCharacters;
         selection.end += numOfAddedCharacters;
       }
-      // This either stays at one place, or one character before the newly added start position
-      const leftMost: string = editorArea.value.substring(curSelectionPosition, selection.start);
-      const rightMost: string = editorArea.value.substring(selection.end, nextSelectionPosition);
+      // This either stays at one place, or is pushed however many more characters added to the start position
+      const leftMost: string = editorArea.value.substring(curSelectionStartPosition >= prevSelectionUpdatedEndPosition
+        ? curSelectionStartPosition
+        : prevSelectionUpdatedEndPosition, selection.start);
+      const rightMost: string = editorArea.value.substring(selection.end, nextSelectionStartPosition >= selection.end
+        ? nextSelectionStartPosition
+        : selection.end);
       wholeContent += `${leftMost}${replaced}${rightMost}`;
     }
     tempSelectedText = null;
@@ -114,6 +121,16 @@
   const onTextAreaKeyboardEvent = (e) => {
     if ((e.keyCode === 66 || e.code === 'KeyB') && !!e.ctrlKey) {
       dispatch('ctrlB');
+    }
+
+    const arrowKeysPressed = (
+      (e.keyCode === 37 || e.code === 'ArrowLeft') ||
+      (e.keyCode === 39 || e.code === 'ArrowRight') ||
+      (e.keyCode === 36 || e.code === 'Home') ||
+      (e.keyCode === 35 || e.code === 'End')
+    );
+    if (!!arrowKeysPressed && !!e.shiftKey) {
+      textSelected();
     }
   };
 
