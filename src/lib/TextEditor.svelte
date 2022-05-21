@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
 
   // Type
   import type { RecentSelection } from '../types/RecentSelection';
@@ -17,8 +17,36 @@
 
   let recentSelection: RecentSelection = null;
 
+  const strippedString = (uuid: string): string => {
+    const element = previewArea.querySelector(`[data-uuid="${uuid}"]`);
+    if (!element) return '';
+
+    let str = element.innerHTML;
+    if (!str || str.length === 1) {
+      element.remove();
+      return '';
+    }
+    str = str.toString();
+          
+    // Regular expression to identify HTML tags in 
+    // the input string. Replacing the identified 
+    // HTML tag with a null string.
+    return str.replace( /(<([^>]+)>)/ig, '');
+  };
+
+  const removeClickEvent = (uuid: string): string => {
+    const hiddenElement: Element = previewArea.querySelector(`[data-uuid="${uuid}"]`);
+    let strippedValue: string = '';
+    if (!!hiddenElement) {
+      hiddenElement.removeEventListener('click', () => { console.warn('REMOVED') });
+      strippedValue = strippedString(uuid);
+    }
+
+    return strippedValue;
+  }
+
   const appendClickEvent = () => {
-    const newlyCreatedElements = document.querySelectorAll('.hide');
+    const newlyCreatedElements: NodeListOf<Element> = document.querySelectorAll('.hide');
 
     if (!!newlyCreatedElements) {
       Array.from(newlyCreatedElements).forEach((element, idx) => {
@@ -30,18 +58,33 @@
     }
   };
 
-  const strippedString = (uuid: string): string => {
-    let str = previewArea.querySelector(`[data-uuid="${uuid}"]`)?.innerHTML;
-    if (!str) return '';
-    str = str.toString();
-          
-    // Regular expression to identify HTML tags in 
-    // the input string. Replacing the identified 
-    // HTML tag with a null string.
-    return str.replace( /(<([^>]+)>)/ig, '');
+  const modifySelectedStringOnTextDeletion = (
+    editorActualCaretPosition: number,
+    selection: SelectedText,
+    eventType: string,
+  ) => {
+    let value: string = '';
+    /* Check for delete event type to slice the selected text
+      only if the caret position is right where the selected text starting position is */
+    // Delete Key is pressed
+    const offsetBeforeDeletion = 1;
+    if (editorActualCaretPosition === selection.start + offsetBeforeDeletion) {
+      if (eventType === 'deleteContentForward') {
+        value = selection.text.substring(0 + offsetBeforeDeletion, selection.text.length);
+        return value;
+      }
+    }
+    if (editorActualCaretPosition === selection.end) {
+      if (eventType === 'deleteContentBackward') {
+        value = selection.text.substring(0, selection.text.length - offsetBeforeDeletion);
+        return value;
+      }
+    }
+
+    return selection.text;
   };
 
-  const modifyHTMLContent = (numOfAddedCharacters: number): string => {
+  const modifyHTMLContent = (numOfModifiedCharacters: number, eventType: string = ''): string => {
     let wholeContent: string = '';
 
     let strippedStringAtIndx: number = -1;
@@ -52,19 +95,31 @@
       const nextSelectionStartPosition: number = !!selectedText[i + 1]
         ? selectedText[i + 1].start
         : editorArea.value.length;
-  
+
+      const editorActualCaretPosition = editorArea.selectionStart - (!!pasted ? pasted.length : numOfModifiedCharacters);
+
+      // Update start and end position of each selection
+      if (editorActualCaretPosition <= selection.start) {
+        selection.start += numOfModifiedCharacters;
+        selection.end += numOfModifiedCharacters;
+      }
+
+      selection.text = modifySelectedStringOnTextDeletion(
+        editorActualCaretPosition, selection, eventType,
+      );
+
+      // The replaced part (stripped HTML or added HTML tag string)
       let replaced: string = '';
       if (!!selection.wasHidden) {
-        replaced = strippedString(selection.id);
+        replaced = removeClickEvent(selection.id);
+        strippedStringAtIndx = i;
+      }
+      else if (!selection.text) {
+        replaced = ' ';
         strippedStringAtIndx = i;
       }
       else replaced = `<span class="${className}" id="${selection.id}" data-uuid=${selection.id}>${selection.text}</span>`;
 
-      const editorActualCaretPosition = editorArea.selectionStart - (!!pasted ? pasted.length : numOfAddedCharacters);
-      if (editorActualCaretPosition <= selection.start) {
-        selection.start += numOfAddedCharacters;
-        selection.end += numOfAddedCharacters;
-      }
       // This either stays at one place, or is pushed however many more characters added to the start position
       const leftMost: string = editorArea.value.substring(curSelectionStartPosition >= prevSelectionUpdatedEndPosition
         ? curSelectionStartPosition
@@ -83,7 +138,6 @@
 
   const characterCounts = (e: InputEvent): number => {
     if (!!pasted) return pasted.length;
-    // TODO include deleteContentForward / deleteContentBackward
     if (e.inputType.indexOf('deleteContent') > -1) return -1;
     return !!e.data ? e.data.length : 1;
   };
@@ -108,7 +162,7 @@
     if (!isWritting) isWritting = true;
     if (!!editorArea && !!previewArea) {
       previewArea.innerHTML = (!!recentSelection && selectedText.length > 0)
-        ? modifyHTMLContent(characterCounts(e))
+        ? modifyHTMLContent(characterCounts(e), e.inputType)
         : editorArea.value;
       previewArea.scrollTop = editorArea.scrollTop;
     }
@@ -146,6 +200,11 @@
     // @ts-ignore
     pasted = (e.clipboardData || window.clipboardData).getData('text');
   };
+
+  // Life Cycle
+  onMount(() => {
+    editorArea.focus();
+  })
 
   $: {
     if (!!controlClicked) {
