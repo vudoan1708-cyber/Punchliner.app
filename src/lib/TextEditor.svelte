@@ -53,6 +53,7 @@
 
     if (!!newlyCreatedElements) {
       Array.from(newlyCreatedElements).forEach((element, idx) => {
+        element.removeEventListener('click', () => { console.warn('REMOVED') });
         element.addEventListener('click', () => {
           controlClicked = false;
           dispatch('text-click', selectedText[idx]);
@@ -203,7 +204,7 @@
   };
 
   const onTextAreaMouseMoved = () => {
-    if (!!isWritting) {
+    if (!!isWritting && selectedText.length > 0) {
       isWritting = false;
       appendClickEvent();
     }
