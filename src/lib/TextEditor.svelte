@@ -110,14 +110,18 @@
 
         const editorActualCaretPosition = findCaretPosition(numOfModifiedCharacters, eventType);
       if (editorActualCaretPosition <= selection.start) {
+        // If caret is placed at the start of text, keep the text starting pos still
+        // whilst moving the other ones behind, if any
         if (eventType.indexOf('deleteContent') > -1
           && (editorActualCaretPosition === selection.start
             || editorActualCaretPosition === selection.end - numOfModifiedCharacters)) {
           if (i < selectedText.length - 1) {
-            nextSelectionStartPosition += numOfModifiedCharacters;
-            selectedText[i + 1].start = nextSelectionStartPosition;
+            selectedText[i + 1].start += numOfModifiedCharacters;
+            nextSelectionStartPosition = selectedText[i + 1].start;
           }
-        } else selection.start += numOfModifiedCharacters;
+        // If deleting when there is only one selected piece of string || when there is no deleting at all
+        } else if ((eventType.indexOf('deleteContent') < 0
+          || eventType.indexOf('deleteContent') > -1 && selectedText.length === 1)) selection.start += numOfModifiedCharacters;
         selection.end += numOfModifiedCharacters;
       }
 
