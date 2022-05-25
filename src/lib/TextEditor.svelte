@@ -5,6 +5,9 @@
   import type { RecentSelection } from '../types/RecentSelection';
   import type { SelectedText } from '../types/SelectedText';
 
+  // Utility
+  import { deepClone } from '../helper/utilities';
+
   export let className: string = '';
   export let selectedText: SelectedText[] = [];
   export let tempSelectedText: SelectedText = null;
@@ -96,10 +99,34 @@
     return editorArea.selectionStart - numOfModifiedCharacters;
   };
 
+  const caretOnEitherEndOfText = (
+    eventType: string,
+    editorActualCaretPosition: number,
+    numOfModifiedCharacters:number,
+    selection: SelectedText,
+  ) => (
+    eventType.indexOf('deleteContent') > -1
+      && (editorActualCaretPosition === selection.start
+        || editorActualCaretPosition === selection.end - numOfModifiedCharacters)
+  );
+
+  const caretInBetweenSelectedTexts = (
+    eventType: string,
+    editorActualCaretPosition: number,
+    numOfModifiedCharacters:number,
+    selection: SelectedText,
+    nextSelection: SelectedText,
+  ) => (
+    eventType.indexOf('deleteContent') > -1
+      && (editorActualCaretPosition >= selection.end - numOfModifiedCharacters
+        && editorActualCaretPosition <= nextSelection?.start)
+  );
+
   const modifyHTMLContent = (numOfModifiedCharacters: number, eventType: string = ''): string => {
     let wholeContent: string = '';
 
     let strippedStringAtIndx: number = -1;
+    let startOfInterval: SelectedText = null;
     for (let i = 0; i < selectedText.length; i += 1) {
       const selection: SelectedText = selectedText[i];
       const prevSelectionUpdatedEndPosition: number = !!selectedText[i - 1] ? selectedText[i - 1].end : 0;
@@ -110,19 +137,34 @@
 
         const editorActualCaretPosition = findCaretPosition(numOfModifiedCharacters, eventType);
       if (editorActualCaretPosition <= selection.start) {
-        // If caret is placed at the start of text, keep the text starting pos still
+        // If deleting when there is only one selected piece of string || when there is no deleting at all
+        if ((eventType.indexOf('deleteContent') < 0
+          || eventType.indexOf('deleteContent') > -1 && selectedText.length === 1)) {
+            if (!caretOnEitherEndOfText(eventType, editorActualCaretPosition, numOfModifiedCharacters, selection)) {
+              selection.start += numOfModifiedCharacters;
+            }
+          }
+        // If caret is placed at the start or end of text, keep the text starting pos still
         // whilst moving the other ones behind, if any
-        if (eventType.indexOf('deleteContent') > -1
-          && (editorActualCaretPosition === selection.start
-            || editorActualCaretPosition === selection.end - numOfModifiedCharacters)) {
+        else if (!!caretOnEitherEndOfText(eventType, editorActualCaretPosition, numOfModifiedCharacters, selection)) {
           if (i < selectedText.length - 1) {
             selectedText[i + 1].start += numOfModifiedCharacters;
             nextSelectionStartPosition = selectedText[i + 1].start;
           }
-        // If deleting when there is only one selected piece of string || when there is no deleting at all
-        } else if ((eventType.indexOf('deleteContent') < 0
-          || eventType.indexOf('deleteContent') > -1 && selectedText.length === 1)) selection.start += numOfModifiedCharacters;
+        }
+        else if (eventType.indexOf('deleteContent') > -1) {
+          if (i < selectedText.length - 1) {
+            selection.start += numOfModifiedCharacters;
+            selectedText[i + 1].start += numOfModifiedCharacters;
+            nextSelectionStartPosition = selectedText[i + 1].start;
+          }
+        }
         selection.end += numOfModifiedCharacters;
+      } else if (!!caretInBetweenSelectedTexts(eventType, editorActualCaretPosition, numOfModifiedCharacters, !startOfInterval ? selection : startOfInterval, selectedText[i + 1])) {
+        // This is to only re-assign value to this variable ONCE, to compare it with the rest blocks of selection
+        if (!startOfInterval) startOfInterval = deepClone(selection);
+        selectedText[i + 1].start += numOfModifiedCharacters;
+        nextSelectionStartPosition = selectedText[i + 1].start;
       }
 
       selection.text = modifySelectedStringOnTextDeletion(
