@@ -6,7 +6,7 @@
   import type { SelectedText } from '../types/SelectedText';
 
   // Utility
-  import { deepClone } from '../helper/utilities';
+  import { deepClone, stringDiffOnce } from '../helper/utilities';
 
   export let className: string = '';
   export let selectedText: SelectedText[] = [];
@@ -72,10 +72,14 @@
     eventType: string,
   ) => {
     let value: string = '';
+    const textDiffBeforeDeletion = selectedText.length > 0 ? stringDiffOnce(editorArea.value, previewArea.textContent) : null;
     /* Check for delete event type to slice the selected text
       only if the caret position is right where the selected text starting position is */
     // Delete Key is pressed
-    const offsetBeforeDeletion = Math.abs(numOfModifiedCharacters);
+    console.log(textDiffBeforeDeletion)
+    const offsetBeforeDeletion = (!!textDiffBeforeDeletion.containsDiff && textDiffBeforeDeletion.diff.str2 === ' ')
+      ? 0
+      : Math.abs(numOfModifiedCharacters);
     if (editorActualCaretPosition === selection.start) {
       if (eventType === 'deleteContentForward') {
         value = selection.text.substring(0 + offsetBeforeDeletion, selection.text.length);
@@ -160,11 +164,18 @@
           }
         }
         selection.end += numOfModifiedCharacters;
-      } else if (!!caretInBetweenSelectedTexts(eventType, editorActualCaretPosition, numOfModifiedCharacters, !startOfInterval ? selection : startOfInterval, selectedText[i + 1])) {
-        // This is to only re-assign value to this variable ONCE, to compare it with the rest blocks of selection
-        if (!startOfInterval) startOfInterval = deepClone(selection);
-        selectedText[i + 1].start += numOfModifiedCharacters;
-        nextSelectionStartPosition = selectedText[i + 1].start;
+      } else if (!!caretInBetweenSelectedTexts(
+          eventType,
+          editorActualCaretPosition,
+          numOfModifiedCharacters,
+          !startOfInterval ? selection : startOfInterval, selectedText[i + 1]
+        )) {
+        if (!caretOnEitherEndOfText(eventType, editorActualCaretPosition, numOfModifiedCharacters, selectedText[i + 1])) {
+          // This is to only re-assign value to this variable ONCE, to compare it with the rest blocks of selection
+          if (!startOfInterval) startOfInterval = deepClone(selection);
+          selectedText[i + 1].start += numOfModifiedCharacters;
+          nextSelectionStartPosition = selectedText[i + 1].start;
+        }
       }
 
       selection.text = modifySelectedStringOnTextDeletion(
@@ -197,9 +208,7 @@
 
   const characterCounts = (e: InputEvent): number => {
     if (!!pasted) return pasted.length;
-    if (e.inputType.indexOf('deleteContent') > -1) {
-      return !recentSelection ? -1 : -recentSelection.text.length;
-    }
+    if (e.inputType.indexOf('deleteContent') > -1) return !recentSelection ? -1 : -recentSelection.text.length;
     return !!e.data ? e.data.length : 1;
   };
 
