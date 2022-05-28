@@ -21,5 +21,5 @@ export default (str1: string, str2: string) => {
     }
     if (str1[idx] === str2[idx]) diff.get('line').character += str1[idx];
   }
-  return Array.from(diff)[0][1];
+  return diff.get('line');
 };

@@ -76,17 +76,16 @@
     /* Check for delete event type to slice the selected text
       only if the caret position is right where the selected text starting position is */
     // Delete Key is pressed
-    console.log(textDiffBeforeDeletion)
-    const offsetBeforeDeletion = (!!textDiffBeforeDeletion.containsDiff && textDiffBeforeDeletion.diff.str2 === ' ')
-      ? 0
-      : Math.abs(numOfModifiedCharacters);
-    if (editorActualCaretPosition === selection.start) {
+    const offsetBeforeDeletion = Math.abs(numOfModifiedCharacters);
+    console.log(editorActualCaretPosition, selection.end, textDiffBeforeDeletion)
+    if (editorActualCaretPosition === selection.start &&
+      (!!textDiffBeforeDeletion && textDiffBeforeDeletion.diff.str2 !== ' ')) {
       if (eventType === 'deleteContentForward') {
         value = selection.text.substring(0 + offsetBeforeDeletion, selection.text.length);
         return value;
       }
     }
-    if (editorActualCaretPosition === selection.end - offsetBeforeDeletion) {
+    if (editorActualCaretPosition === selection.end) {
       if (eventType === 'deleteContentBackward') {
         value = selection.text.substring(0, selection.text.length - offsetBeforeDeletion);
         return value;
@@ -99,7 +98,7 @@
   const findCaretPosition = (numOfModifiedCharacters: number, eventType: string) => {
     if (!!pasted) return editorArea.selectionStart - pasted.length;
     if (eventType === 'deleteContentForward') return editorArea.selectionStart;
-    if (eventType === 'deleteContentBackward') return editorArea.selectionStart - 1;
+    if (eventType === 'deleteContentBackward') return editorArea.selectionStart;
     return editorArea.selectionStart - numOfModifiedCharacters;
   };
 
@@ -111,7 +110,7 @@
   ) => (
     eventType.indexOf('deleteContent') > -1
       && (editorActualCaretPosition === selection.start
-        || editorActualCaretPosition === selection.end - numOfModifiedCharacters)
+        || editorActualCaretPosition === selection.end - Math.abs(numOfModifiedCharacters))
   );
 
   const caretInBetweenSelectedTexts = (
@@ -122,7 +121,7 @@
     nextSelection: SelectedText,
   ) => (
     eventType.indexOf('deleteContent') > -1
-      && (editorActualCaretPosition >= selection.end - numOfModifiedCharacters
+      && (editorActualCaretPosition >= selection.end - Math.abs(numOfModifiedCharacters)
         && editorActualCaretPosition <= nextSelection?.start)
   );
 
@@ -139,7 +138,7 @@
         ? selectedText[i + 1].start
         : editorArea.value.length;
 
-        const editorActualCaretPosition = findCaretPosition(numOfModifiedCharacters, eventType);
+      const editorActualCaretPosition = findCaretPosition(numOfModifiedCharacters, eventType);
       if (editorActualCaretPosition <= selection.start) {
         // If deleting when there is only one selected piece of string || when there is no deleting at all
         if ((eventType.indexOf('deleteContent') < 0
