@@ -77,7 +77,6 @@
       only if the caret position is right where the selected text starting position is */
     // Delete Key is pressed
     const offsetBeforeDeletion = Math.abs(numOfModifiedCharacters);
-    console.log(editorActualCaretPosition, selection.end, textDiffBeforeDeletion)
     if (editorActualCaretPosition === selection.start &&
       (!!textDiffBeforeDeletion && textDiffBeforeDeletion.diff.str2 !== ' ')) {
       if (eventType === 'deleteContentForward') {
@@ -123,6 +122,16 @@
     eventType.indexOf('deleteContent') > -1
       && (editorActualCaretPosition >= selection.end - Math.abs(numOfModifiedCharacters)
         && editorActualCaretPosition <= nextSelection?.start)
+  );
+
+  const caretInBetweenASelectedText = (
+    eventType: string,
+    editorActualCaretPosition: number,
+    selection: SelectedText,
+  ) => (
+    eventType.indexOf('deleteContent') > -1
+      && editorActualCaretPosition >= selection.start
+      && editorActualCaretPosition <= selection.end
   );
 
   const modifyHTMLContent = (numOfModifiedCharacters: number, eventType: string = ''): string => {
@@ -175,6 +184,8 @@
           selectedText[i + 1].start += numOfModifiedCharacters;
           nextSelectionStartPosition = selectedText[i + 1].start;
         }
+      } else if (!!caretInBetweenASelectedText(eventType, editorActualCaretPosition, selection)) {
+        selection.end += numOfModifiedCharacters;
       }
 
       selection.text = modifySelectedStringOnTextDeletion(
