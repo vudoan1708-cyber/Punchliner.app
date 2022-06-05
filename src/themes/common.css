@@ -4,14 +4,15 @@ label {
 }
 
 input[type="text"],
+input[type="email"],
 input[type="password"] {
   position: relative;
   width: 175px;
   height: 25px;
   border: var(--border-width) solid var(--color-primary);
   border-radius: var(--border-radius);
-  background-color: var(--color-secondary);
-  color: var(--color-primary);
+  background-color: var(--color-secondary) !important;
+  color: var(--color-primary) !important;
   font-size: var(--type-body-size);
 }
 input[type="text"]::focus,

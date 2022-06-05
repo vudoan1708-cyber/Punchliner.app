@@ -1,32 +1,32 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from 'svelte';
 
   const dispatch = createEventDispatcher();
   // button type: primary or secondary
-  export let type = 'primary';
+  export let type: string = 'primary';
   // size: normal or small
-  export let size = 'normal';
+  export let size: string = 'normal';
   // a value for the rel attribute on the button
-  export let rel = null;
+  export let rel: string = null;
   // a value for the id attribute if required
-  export let id = '';
+  export let id: string = '';
   // a value for the target attribute - used when href is specified
-  export let target = '_self';
+  export let target: string = '_self';
   // a value for the href - button will render as an anchor element if set
-  export let href = null;
+  export let href: string = null;
   // additional style attributes if required
-  export let style = null;
+  export let style: string = null;
   // url for an icon image
   export let icon = null;
   // title attribute - hover text
-  export let title = '';
-  export let disabled = false;
-  export let working = false;
+  export let title: string = '';
+  export let disabled: boolean = false;
+  export let working: boolean = false;
 
-  const linkClick = (event) => {
+  const linkClick = (event): void => {
     if (disabled) {
       event.preventDefault();
-      return false;
+      return;
     }
     dispatch('click');
   };
@@ -119,7 +119,7 @@
 
 .button.disabled,
 .button.disabled:hover {
-  background-color: var(--color-neutral-200);
+  background-color: var(--color-primary-light);
   border-color: var(--color-neutral-500);
   color: var(--color-neutral-500);
   cursor: not-allowed;

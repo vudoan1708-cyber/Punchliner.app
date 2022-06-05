@@ -1,5 +1,24 @@
 <script lang="ts">
-  import Button from "../../components/Button.svelte";
+  import { navigate } from 'svelte-navigator';
+
+  import Button from '../../components/Button.svelte';
+
+  let email = null;
+  let password = null;
+  let retypedPassword = null;
+
+  // Event Handler
+  const goToHomepage = () => {
+    navigate('/', { replace: false });
+  };
+
+  const goToLoginScreen = () => {
+    if (!disabled) {
+      navigate(`/account/login?id=${email}_${password}_${retypedPassword}`, { replace: false });
+    }
+  };
+
+  $: disabled = !email || !password || !retypedPassword || password !== retypedPassword;
 </script>
 
 <!-- <template> -->
@@ -8,20 +27,20 @@
     <div class="form_content">
       <label for="email">
         Email
-        <input id="email" type="text" />
+        <input id="email" type="email" required bind:value={email} />
       </label>
       <label for="pwd">
         Password
-        <input id="pwd" type="password" />
+        <input id="pwd" type="password" minlength="10" required bind:value={password} />
       </label>
       <label for="retype">
         Re-type Password
-        <input id="retype" type="password" />
+        <input id="retype" type="password" minlength="10" required bind:value={retypedPassword} />
       </label>
     </div>
 
-    <Button type="secondary">Register</Button>
-    <Button type="secondary">Cancel</Button>
+    <Button {disabled} on:click={goToLoginScreen}>Register</Button>
+    <Button type="secondary" on:click={goToHomepage}>Cancel</Button>
   </form>
 <!-- </template> -->
 
