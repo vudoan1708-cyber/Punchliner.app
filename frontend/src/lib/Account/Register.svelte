@@ -39,8 +39,8 @@
       </label>
     </div>
 
-    <Button {disabled} on:click={goToLoginScreen}>Register</Button>
-    <Button type="secondary" on:click={goToHomepage}>Cancel</Button>
+    <Button id="register" {disabled} on:click={goToLoginScreen}>Register</Button>
+    <Button id="cancel" type="secondary" on:click={goToHomepage}>Cancel</Button>
   </form>
 <!-- </template> -->
 
