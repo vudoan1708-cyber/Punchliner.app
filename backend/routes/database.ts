@@ -1,16 +1,15 @@
 // configure the connection to MongoDB
-const createConnection = require('../data/connection');
+import createConnection from "../data/connection";
 
 // MongoDB database
-const getAllData = require('../logic/GetAllData');
-const createData = require('../logic/CreateData');
-const updateData = require('../logic/UpdateData');
+import getAllData from "../logic/GetAllData";
+import createData from "../logic/CreateData";
+import updateData from "../logic/UpdateData";
 
 // Login
-const loginRoute = require('../routes/login');
+import loginRoute from "../routes/login";
 
-module.exports = async(app) => {
-
+export default async (app) => {
   // configure the connection to MongoDB databases
   // 0 (accounts settings)
   // 1 (documents settings)

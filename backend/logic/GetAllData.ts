@@ -1,5 +1,4 @@
-module.exports = async(db) => {
-
+export default async (db) => {
   try {
     // find all
     return await db.find({});
