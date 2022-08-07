@@ -1,22 +1,23 @@
 <script lang="ts">
-  import { Router, Link, Route } from 'svelte-navigator';
+  import { Router, Route, navigate } from 'svelte-navigator';
 
 	import Home from './views/Home.svelte';
 	import Account from './views/Account.svelte';
 	import EditorLayout from './views/EditorLayout.svelte';
 	import NotFound from './views/NotFound.svelte';
 
-  const fallbackRoute = (pathname) => {
+  const fallbackRoute = (pathname, query) => {
     if (pathname.includes('/account') && !pathname.includes('register')) {
-      window.location.href = '/account/login';
+      navigate('/account/login');
+      return;
     }
   };
 
   const createAnnouncement = (route, location) => {
     const viewName = route.meta.name;
-		const { pathname } = location;
+		const { pathname, search } = location;
 
-    fallbackRoute(pathname);
+    fallbackRoute(pathname, search);
     return `Navigated to the ${viewName} view at ${pathname}`;
   };
 </script>
