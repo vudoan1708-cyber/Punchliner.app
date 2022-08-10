@@ -25,6 +25,7 @@ import cors from "cors";
 import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 import mainRoutes from "./routes/v1";
+import { errorHandler } from "./middlewares/error-handler";
 
 // NOTE: init app instance
 const app = express();
@@ -46,7 +47,7 @@ app.use(compression());
 
 // NOTE: enable cors
 app.use(cors());
-app.options("*", cors());
+// app.options("*", cors());
 
 // TODO: jwt authentication
 // app.use(passport.initialize());
@@ -57,5 +58,8 @@ app.options("*", cors());
 // }
 
 app.use("/v1", mainRoutes);
+
+// NOTE: error handler
+app.use(errorHandler);
 
 export default app;

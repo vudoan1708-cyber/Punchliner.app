@@ -48,12 +48,14 @@ import type { Server } from "http";
 
 let server: Server | null;
 
-mongoose.connect(config.MONGODB_URI).then(() => {
-  logger.info("Connected to MongoDB");
-  server = app.listen(config.PORT, () => {
-    logger.info(`Listening to port ${config.PORT}`);
+if (config.MONGODB_URI) {
+  mongoose.connect(config.MONGODB_URI).then(() => {
+    logger.info("Connected to MongoDB");
+    server = app.listen(config.PORT, () => {
+      logger.info(`Listening to port ${config.PORT}`);
+    });
   });
-});
+}
 
 const exitHandler = () => {
   if (server) {
@@ -66,7 +68,7 @@ const exitHandler = () => {
   }
 };
 
-const unexpectedErrorHandler = (error) => {
+const unexpectedErrorHandler = (error: Error | any) => {
   logger.error(error);
   exitHandler();
 };
@@ -74,9 +76,9 @@ const unexpectedErrorHandler = (error) => {
 process.on("uncaughtException", unexpectedErrorHandler);
 process.on("unhandledRejection", unexpectedErrorHandler);
 
-process.on("SIGTERM", () => {
-  logger.info("SIGTERM received");
-  if (server) {
-    server.close();
-  }
-});
+// process.on("SIGTERM", () => {
+//   logger.info("SIGTERM received");
+//   if (server) {
+//     server.close();
+//   }
+// });

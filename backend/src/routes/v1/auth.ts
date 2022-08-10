@@ -1,10 +1,16 @@
 import express from "express";
 import AuthController from "../../controllers/auth";
+import { schemaValidate } from "../../middlewares/schema-validator";
+import { LoginSchema, RegisterSchema } from "../../schema/auth.schema";
 
 const router = express.Router();
 
-router.post("/login", AuthController.login);
+router.post("/login", schemaValidate(LoginSchema), AuthController.login);
 
-router.post("/register", () => {});
+router.post(
+  "/register",
+  schemaValidate(RegisterSchema),
+  AuthController.register
+);
 
 export default router;
