@@ -23,7 +23,7 @@
 </script>
 
 <Router a11y={{ createAnnouncement }}>
-  <div>
+  <main>
     <Route path="/" meta="{{ name: 'home' }}" primary={false}>
       <Home />
     </Route>
@@ -43,5 +43,13 @@
     <Route path="*" meta="{{ name: 'not found' }}">
       <NotFound />
     </Route>
-  </div>
+  </main>
 </Router>
+
+<style>
+  main {
+    position: relative;
+    margin: 0 auto 0 auto;
+    max-width: 900px;
+  }
+</style>
