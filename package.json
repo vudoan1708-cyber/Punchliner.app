@@ -24,8 +24,5 @@
   },
   "workspaces": [
     "packages/*"
-  ],
-  "dependencies": {
-    "zod": "^3.17.10"
-  }
+  ]
 }

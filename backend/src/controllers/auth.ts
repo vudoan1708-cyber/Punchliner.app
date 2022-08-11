@@ -1,4 +1,5 @@
 import httpStatus from "http-status";
+import jwt from "jsonwebtoken";
 import AccountModel from "../models/account";
 import {
   LOGIN_WRONG_PASSWORD,
@@ -8,29 +9,34 @@ import {
 import { RequestHandlerWithType } from "../shared/request-type";
 import ApiError from "../utils/api-error";
 import { createResponse } from "../utils/response";
+import configs from "../configs";
+
+// TODO: move to service
+function signJwtToken(email: string, _id: string): string {
+  return jwt.sign(
+    {
+      username: email,
+      _id: _id,
+      sub: _id,
+    },
+    configs.JWT_SECRET
+  );
+}
 
 const login: RequestHandlerWithType<{
   email: string;
   password: string;
 }> = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-
-    const existedAccount = await AccountModel.findOne({ email });
-
-    if (!existedAccount) {
-      throw new ApiError(httpStatus.NOT_FOUND, USER_NOT_FOUND, true);
+    if (!req.user) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, USER_NOT_FOUND, true);
     }
 
-    const isCorrectPassword = await existedAccount.comparePassword(password);
+    const u = req.user as unknown as { email: string; _id: string };
 
-    if (!isCorrectPassword) {
-      throw new ApiError(httpStatus.FORBIDDEN, LOGIN_WRONG_PASSWORD, true);
-    }
+    const token = signJwtToken(u.email, u._id);
 
-    existedAccount.password = "";
-
-    res.status(httpStatus.OK).json(createResponse(existedAccount));
+    res.status(200).send(createResponse({ user: req.user, bearer: token }));
   } catch (error) {
     next(error);
   }
@@ -59,7 +65,9 @@ const register: RequestHandlerWithType<{
 
     newAccount.password = "";
 
-    res.status(201).json(createResponse(newAccount));
+    const token = signJwtToken(newAccount.email, newAccount._id.toString());
+
+    res.status(201).json(createResponse({ user: newAccount, bearer: token }));
   } catch (e) {
     next(e);
   }
