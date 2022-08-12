@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { Router, Link, Route } from "svelte-navigator";
+  import { Router, Link, Route } from 'svelte-navigator';
 
-	import Home from "./views/Home.svelte";
-	import Account from "./views/Account.svelte";
-	import EditorLayout from "./views/EditorLayout.svelte";
-	import NotFound from "./views/NotFound.svelte";
+	import Home from './views/Home.svelte';
+	import Account from './views/Account.svelte';
+	import EditorLayout from './views/EditorLayout.svelte';
+	import NotFound from './views/NotFound.svelte';
 
   const fallbackRoute = (pathname) => {
     if (pathname.includes('/account') && !pathname.includes('register')) {
