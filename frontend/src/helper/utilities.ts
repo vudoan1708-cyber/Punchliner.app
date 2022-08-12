@@ -11,10 +11,11 @@ import deepClone from './utility_functions/obj/deepClone';
 
 // Others
 import detectBrowsers from './utility_functions/others/detectBrowsers';
+import isDev from './utility_functions/others/isDev';
 
 export {
   uuid, stringDiffOnce,
   appendingArrayWithDuplicateChecker, swapArrayItems,
   deepClone,
-  detectBrowsers,
+  detectBrowsers, isDev,
 };
