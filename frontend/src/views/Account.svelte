@@ -17,3 +17,10 @@
     {/if}
   </div>
 <!-- </template> -->
+
+<style>
+  div.account_container {
+    display: flex;
+    justify-content: center;
+  }
+</style>

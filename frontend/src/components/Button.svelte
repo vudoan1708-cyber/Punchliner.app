@@ -84,7 +84,7 @@
 <style>
 .button {
   font-family: var(--type-button-font);
-  font-size: var(--type-button-size);
+  /* font-size: var(--type-button-size); */
   line-height: var(--type-button-line-height);
   font-weight: var(--type-button-weight);
   border: var(--border-width) solid var(--color-primary);

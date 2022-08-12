@@ -23,7 +23,7 @@
 
 <!-- <template> -->
   <form on:submit|preventDefault>
-    <h3>Create a new account</h3>
+    <h2>Create a new account</h2>
     <div class="form_content">
       <label for="email">
         Email

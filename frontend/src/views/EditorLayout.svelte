@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { navigate } from 'svelte-navigator';
+  
   import TextEditor from "../lib/TextEditor.svelte";
   import ControlsUI from "../lib/ControlsUI/ControlsUI.svelte";
 
@@ -116,6 +118,16 @@
   const removeSelectedText = ({ detail }) => {
     selectedText = selectedText.filter((__, idx) => idx !== detail);
   };
+
+  const invalidLocation = (pathname, search) => {
+    return pathname.includes('/editor') && (!search || !search.includes('?userId=') || !search.includes('%22%22'));
+  };
+  (() => {
+    const { pathname, search } = window.location;
+    if (invalidLocation(pathname, search)) {
+      navigate('/account/login');
+    }
+  })();
 </script>
 
 <main>
