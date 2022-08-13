@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+
 import getFetch from './index';
 import { ACCOUNTAPI } from '../helper/constants';
 
@@ -7,18 +9,13 @@ type PostBody = {
   confirm: string;
 }
 
+/** Register Endpoint */
 interface IRegisterBuilder {
   URL: string;
   BODY: PostBody;
-  addEmail(email: string): IRegisterBuilder;
-  addPassword(password: string): IRegisterBuilder;
-  addPasswordConfirm(confirm: string): IRegisterBuilder;
-  POST(): Promise<{
-    email,
-    password,
-    bearer,
-  }>
-};
+  addRequestBody(requestObj: PostBody): IRegisterBuilder;
+  POST(): Promise<any>
+}
 
 export const RegisterBuilder: IRegisterBuilder = {
   URL: `${ACCOUNTAPI}/register`,
@@ -27,19 +24,40 @@ export const RegisterBuilder: IRegisterBuilder = {
     password: '',
     confirm: '',
   },
-  addEmail: (email) => {
-    RegisterBuilder.BODY.email = email;
+  addRequestBody: ({ email = '', password = '', confirm = '' }) => {
+    RegisterBuilder.BODY = {
+      email,
+      password,
+      confirm,
+    };
     return RegisterBuilder;
   },
-  addPassword: (password) => {
-    RegisterBuilder.BODY.password = password;
-    return RegisterBuilder;
+  POST: () => getFetch(RegisterBuilder.URL, 'POST', RegisterBuilder.BODY),
+};
+/** Register Endpoint */
+
+/** Login Endpoint */
+type LoginPostBody = Omit<PostBody, 'confirm'>;
+
+interface ILoginBuilder {
+  URL: string;
+  BODY: LoginPostBody;
+  addRequestBody(requestObj: LoginPostBody): ILoginBuilder;
+  POST(): Promise<any>
+}
+
+export const LoginBuilder: ILoginBuilder = {
+  URL: `${ACCOUNTAPI}/login`,
+  BODY: {
+    email: '',
+    password: '',
   },
-  addPasswordConfirm: (confirm) => {
-    RegisterBuilder.BODY.confirm = confirm;
-    return RegisterBuilder;
+  addRequestBody: ({ email = '', password = '' }) => {
+    LoginBuilder.BODY = {
+      email,
+      password,
+    };
+    return LoginBuilder;
   },
-  POST: () => {
-    return getFetch(RegisterBuilder.URL, 'POST', RegisterBuilder.BODY);
-  }
+  POST: () => getFetch(LoginBuilder.URL, 'POST', LoginBuilder.BODY),
 };
