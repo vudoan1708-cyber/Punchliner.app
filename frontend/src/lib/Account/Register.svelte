@@ -2,23 +2,51 @@
   import { navigate } from 'svelte-navigator';
 
   import Button from '../../components/Button.svelte';
+  import Loading from '../../components/Loading.svelte';
 
-  let email = null;
-  let password = null;
-  let retypedPassword = null;
+  // Utilities
+  import { RegisterBuilder } from '../../API/Account';
+
+  let email: string|null = null;
+  let password: string|null = null;
+  let confirm: string|null = null;
+
+  // DOM Refs
+  let passwordRef: HTMLInputElement|null = null;
+  let confirmRef: HTMLInputElement|null = null;
+
+  let loading: boolean = false;
 
   // Event Handler
-  const goToHomepage = () => {
+  const goToHomepage = (): void => {
     navigate('/', { replace: false });
   };
 
-  const goToLoginScreen = () => {
-    if (!disabled) {
-      navigate(`/account/login?id=${email}_${password}_${retypedPassword}`, { replace: false });
+  const goToLoginScreen = async (): Promise<void> => {
+    let bearer: string|null = null;
+
+    if (disabled || password.length < passwordRef.minLength || confirm.length < confirmRef.minLength) return;
+
+    loading = true;
+
+    try {
+      console.log(email, password, confirm)
+      const response = await RegisterBuilder()
+        .addRequestBody({ email, password, confirm })
+        .POST();
+      console.log(response);
+      if (!response.success) return;
+
+      ({ bearer } = response.data);
+      navigate(`/account/login?sessionId=${bearer}`, { replace: false });
+    } catch (err) {
+      console.log(err);
+    } finally {
+      loading = false;
     }
   };
 
-  $: disabled = !email || !password || !retypedPassword || password !== retypedPassword;
+  $: disabled = !email || !password || !confirm || password !== confirm;
 </script>
 
 <!-- <template> -->
@@ -31,20 +59,44 @@
       </label>
       <label for="pwd">
         Password
-        <input id="pwd" type="password" minlength="10" required bind:value={password} />
+        <input
+          id="pwd"
+          type="password"
+          minlength="6"
+          required
+          bind:this={passwordRef}
+          bind:value={password} />
       </label>
       <label for="retype">
         Re-type Password
-        <input id="retype" type="password" minlength="10" required bind:value={retypedPassword} />
+        <input
+          id="retype"
+          type="password"
+          minlength="6"
+          required
+          bind:this={confirmRef}
+          bind:value={confirm} />
       </label>
     </div>
 
-    <Button id="register" {disabled} on:click={goToLoginScreen}>Register</Button>
-    <Button id="cancel" type="secondary" on:click={goToHomepage}>Cancel</Button>
+    <div>
+      <Button id="register" {disabled} on:click={goToLoginScreen}>Register</Button>
+      <Button id="cancel" type="secondary" on:click={goToHomepage}>Cancel</Button>
+    </div>
+
+    {#if loading}
+      <Loading />
+    {/if}
   </form>
 <!-- </template> -->
 
 <style>
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
   .form_content {
     position: relative;
     margin-bottom: calc(var(--margin) * 3);

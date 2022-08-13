@@ -14,25 +14,38 @@ interface IRegisterBuilder {
   URL: string;
   BODY: PostBody;
   addRequestBody(requestObj: PostBody): IRegisterBuilder;
+  resetRequestBody(): IRegisterBuilder;
   POST(): Promise<any>
 }
 
-export const RegisterBuilder: IRegisterBuilder = {
-  URL: `${ACCOUNTAPI}/register`,
-  BODY: {
-    email: '',
-    password: '',
-    confirm: '',
-  },
-  addRequestBody: ({ email = '', password = '', confirm = '' }) => {
-    RegisterBuilder.BODY = {
-      email,
-      password,
-      confirm,
-    };
-    return RegisterBuilder;
-  },
-  POST: () => getFetch(RegisterBuilder.URL, 'POST', RegisterBuilder.BODY),
+export const RegisterBuilder = (): IRegisterBuilder => {
+  const blueprint = {
+    URL: `${ACCOUNTAPI}/register`,
+    BODY: {
+      email: '',
+      password: '',
+      confirm: '',
+    },
+    addRequestBody: ({ email = '', password = '', confirm = '' }) => {
+      blueprint.BODY = {
+        email,
+        password,
+        confirm,
+      };
+      return blueprint;
+    },
+    resetRequestBody: () => {
+      blueprint.BODY = {
+        email: '',
+        password: '',
+        confirm: '',
+      };
+      return blueprint;
+    },
+    POST: () => getFetch(blueprint.URL).post(blueprint.BODY),
+  };
+
+  return blueprint;
 };
 /** Register Endpoint */
 
@@ -43,21 +56,33 @@ interface ILoginBuilder {
   URL: string;
   BODY: LoginPostBody;
   addRequestBody(requestObj: LoginPostBody): ILoginBuilder;
+  resetRequestBody(): ILoginBuilder;
   POST(): Promise<any>
 }
 
-export const LoginBuilder: ILoginBuilder = {
-  URL: `${ACCOUNTAPI}/login`,
-  BODY: {
-    email: '',
-    password: '',
-  },
-  addRequestBody: ({ email = '', password = '' }) => {
-    LoginBuilder.BODY = {
-      email,
-      password,
-    };
-    return LoginBuilder;
-  },
-  POST: () => getFetch(LoginBuilder.URL, 'POST', LoginBuilder.BODY),
+export const LoginBuilder = (): ILoginBuilder => {
+  const blueprint = {
+    URL: `${ACCOUNTAPI}/login`,
+    BODY: {
+      email: '',
+      password: '',
+    },
+    addRequestBody: ({ email = '', password = '' }) => {
+      blueprint.BODY = {
+        email,
+        password,
+      };
+      return blueprint;
+    },
+    resetRequestBody: () => {
+      blueprint.BODY = {
+        email: '',
+        password: '',
+      };
+      return blueprint;
+    },
+    POST: () => getFetch(blueprint.URL).post(blueprint.BODY),
+  };
+
+  return blueprint;
 };

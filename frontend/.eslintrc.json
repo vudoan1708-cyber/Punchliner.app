@@ -5,6 +5,7 @@
     "node": true
   },
   "extends": [
+    "airbnb-base",
     "airbnb-typescript",
     "plugin:@ota-meshi/svelte/recommended"
   ],
@@ -24,7 +25,6 @@
   "overrides": [
     {
       "files": ["**/*.svelte"],
-      // "processor": "svelte3/svelte3"
       "parser": "svelte-eslint-parser",
       // AirBnB's ESLint config rules with indentation can conflict with svelte-eslint-parser's, hence disable one of them
       "rules": {
