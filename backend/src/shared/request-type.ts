@@ -1,9 +1,14 @@
 import type { RequestHandler } from "express";
 
-type RequestHandlerWithType<RequestBody = any> = RequestHandler<
-  any,
-  any,
-  RequestBody
->;
+type RequestHandlerWithType<
+  RequestBody = any,
+  RequestQuery = any,
+  RequestParam = any
+> = RequestHandler<RequestParam, any, RequestBody, RequestQuery>;
 
-export type { RequestHandlerWithType };
+type PaginationOption = {
+  page?: number;
+  pageSize?: number;
+};
+
+export type { RequestHandlerWithType, PaginationOption };
