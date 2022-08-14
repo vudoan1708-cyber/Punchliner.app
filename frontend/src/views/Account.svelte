@@ -3,7 +3,6 @@
   import Register from '../lib/Account/Register.svelte';
 
   export let accessActivity: string = 'login';
-  console.log(accessActivity)
 </script>
 
 <!-- <template> -->

@@ -9,6 +9,7 @@
 
   // Utilities
   import { cookiestore } from '../../helper/storage';
+  import { goToHomepage } from '../../helper/utilities';
 
   let email: string|null = null;
   let password: string|null = null;
@@ -21,10 +22,6 @@
   let loading: boolean = false;
 
   // Event Handler
-  const goToHomepage = (): void => {
-    navigate('/', { replace: false });
-  };
-
   const goToLoginScreen = async (): Promise<void> => {
     let bearer: string|null = null;
 
@@ -33,7 +30,6 @@
     loading = true;
 
     try {
-      console.log(email, password, confirm)
       const response = await RegisterBuilder()
         .addRequestBody({ email, password, confirm })
         .POST();
@@ -41,9 +37,10 @@
 
       ({ bearer } = response.data);
       cookiestore.set({ name: 'session', value: bearer });
+
       navigate('/account/login', { replace: false });
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
       loading = false;
     }
