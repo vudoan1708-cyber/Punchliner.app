@@ -1,21 +1,31 @@
+import { isDev } from '../helper/utilities';
+
 interface IGetFetch {
   get(): Promise<any>;
-  post(body: object): Promise<any>;
+  post({ ...args }: object): Promise<any>;
 }
 
 /**
  * general fetch constructor
  *
  * @param   {string}  url     the url for the fetch call
- * @param   {object}  body    the json object which will be added to the request body as a string
  *
  * @return  {object}          the json object returned by the call
  */
 const getFetch = (url: string): IGetFetch => {
   const jsonify = async (options: object): Promise<any> => {
-    const res: Response = await fetch(url, options);
+    const _options_ = {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+      },
+    }
+    const res: Response = await fetch(url, _options_);
     if (res.status === 204) return;
     const json = await res.json();
+
+    if (isDev()) console.log(json);
+
     return json;
   };
 

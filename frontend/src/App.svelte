@@ -49,6 +49,7 @@
 <style>
   main {
     position: relative;
+    height: 100vh;
     margin: 0 auto 0 auto;
     max-width: 900px;
   }

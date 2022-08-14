@@ -13,7 +13,7 @@ type PostBody = {
 interface IRegisterBuilder {
   URL: string;
   BODY: PostBody;
-  addRequestBody(requestObj: PostBody): IRegisterBuilder;
+  addRequestBody({ ...args }: PostBody): IRegisterBuilder;
   resetRequestBody(): IRegisterBuilder;
   POST(): Promise<any>
 }
@@ -55,7 +55,7 @@ type LoginPostBody = Omit<PostBody, 'confirm'>;
 interface ILoginBuilder {
   URL: string;
   BODY: LoginPostBody;
-  addRequestBody(requestObj: LoginPostBody): ILoginBuilder;
+  addRequestBody({ ...args }: LoginPostBody): ILoginBuilder;
   resetRequestBody(): ILoginBuilder;
   POST(): Promise<any>
 }

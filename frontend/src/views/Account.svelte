@@ -20,6 +20,8 @@
 
 <style>
   div.account_container {
+    position: relative;
+    height: 100%;
     display: flex;
     justify-content: center;
   }

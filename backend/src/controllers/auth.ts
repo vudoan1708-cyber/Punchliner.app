@@ -47,7 +47,6 @@ const register: RequestHandlerWithType<{
   password: string;
   confirm: string;
 }> = async (req, res, next) => {
-  console.log(req)
   try {
     const { email, password } = req.body;
 

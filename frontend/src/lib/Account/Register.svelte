@@ -4,8 +4,11 @@
   import Button from '../../components/Button.svelte';
   import Loading from '../../components/Loading.svelte';
 
-  // Utilities
+  // API
   import { RegisterBuilder } from '../../API/Account';
+
+  // Utilities
+  import { cookiestore } from '../../helper/storage';
 
   let email: string|null = null;
   let password: string|null = null;
@@ -34,11 +37,11 @@
       const response = await RegisterBuilder()
         .addRequestBody({ email, password, confirm })
         .POST();
-      console.log(response);
       if (!response.success) return;
 
       ({ bearer } = response.data);
-      navigate(`/account/login?sessionId=${bearer}`, { replace: false });
+      cookiestore.set({ name: 'session', value: bearer });
+      navigate('/account/login', { replace: false });
     } catch (err) {
       console.log(err);
     } finally {
@@ -92,6 +95,7 @@
 
 <style>
   form {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
