@@ -1,27 +1,10 @@
 import httpStatus from "http-status";
-import jwt from "jsonwebtoken";
 import AccountModel from "../models/account";
-import {
-  LOGIN_WRONG_PASSWORD,
-  USER_ALREADY_EXISTED,
-  USER_NOT_FOUND,
-} from "../shared/error-codes";
+import { USER_ALREADY_EXISTED, UNAUTHORIZED } from "../shared/error-codes";
 import { RequestHandlerWithType } from "../shared/request-type";
 import ApiError from "../utils/api-error";
 import { createResponse } from "../utils/response";
-import configs from "../configs";
-
-// TODO: move to service
-function signJwtToken(email: string, _id: string): string {
-  return jwt.sign(
-    {
-      username: email,
-      _id: _id,
-      sub: _id,
-    },
-    configs.JWT_SECRET
-  );
-}
+import AuthService from "../services/auth.service";
 
 const login: RequestHandlerWithType<{
   email: string;
@@ -29,14 +12,14 @@ const login: RequestHandlerWithType<{
 }> = async (req, res, next) => {
   try {
     if (!req.user) {
-      throw new ApiError(httpStatus.UNAUTHORIZED, USER_NOT_FOUND, true);
+      throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
     }
 
-    const u = req.user as unknown as { email: string; _id: string };
+    const user = req.user;
 
-    const token = signJwtToken(u.email, u._id);
+    const token = AuthService.signJwtToken(user.email, user._id);
 
-    res.status(200).send(createResponse({ user: req.user, bearer: token }));
+    res.status(200).send(createResponse({ user, bearer: token }));
   } catch (error) {
     next(error);
   }
@@ -65,7 +48,10 @@ const register: RequestHandlerWithType<{
 
     newAccount.password = "";
 
-    const token = signJwtToken(newAccount.email, newAccount._id.toString());
+    const token = AuthService.signJwtToken(
+      newAccount.email,
+      newAccount._id.toString()
+    );
 
     res.status(201).json(createResponse({ user: newAccount, bearer: token }));
   } catch (e) {
