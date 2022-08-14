@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { ERROR_EN } from "../shared/locale.en";
+import { ERROR_EN } from "../shared/error/locale.en";
 import ApiError from "../utils/api-error";
 
 export function errorHandler(
