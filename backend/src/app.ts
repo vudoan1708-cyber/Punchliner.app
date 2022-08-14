@@ -34,7 +34,6 @@ app.use(cors());
 app.use(passport.initialize());
 passport.use(PassportLocalStrategy);
 passport.use(PassportJWTStrategy);
-// passport.use("jwt", jwtStrategy);
 
 app.use("/v1", mainRoutes);
 

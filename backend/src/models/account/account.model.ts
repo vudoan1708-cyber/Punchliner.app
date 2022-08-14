@@ -1,20 +1,17 @@
-import type { Model } from "mongoose";
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
+import { ACCOUNT_MODEL_NAME, SALT_WORK_FACTOR } from "./account.constant";
+import type {
+  AccountModel as AccountModelType,
+  IAccountDoc,
+  IAccountMethods,
+} from "./account.type";
 
-const SALT_WORK_FACTOR = 10;
-interface IAccountDoc {
-  email: string;
-  password: string;
-}
-
-interface IAccountMethods {
-  comparePassword(p: string): Promise<boolean>;
-}
-
-type AccountModel = Model<IAccountDoc, {}, IAccountMethods>;
-
-const AccountSchema = new Schema<IAccountDoc, AccountModel, IAccountMethods>(
+const AccountSchema = new Schema<
+  IAccountDoc,
+  AccountModelType,
+  IAccountMethods
+>(
   {
     email: {
       type: String,
@@ -58,6 +55,6 @@ AccountSchema.method(
   }
 );
 
-const AccountModel = model("Account", AccountSchema);
+const AccountModel = model(ACCOUNT_MODEL_NAME, AccountSchema);
 
 export default AccountModel;
