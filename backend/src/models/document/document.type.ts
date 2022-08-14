@@ -4,11 +4,14 @@ interface IDocumentDoc {
   title: string;
   words: number;
   content?: string;
+  passcode?: string;
   isShared: boolean;
   ownerId: Types.ObjectId;
 }
 
-interface IDocumentMethods {}
+interface IDocumentMethods {
+  comparePasscode(p: string): Promise<boolean>;
+}
 
 type DocumentModelType = Model<IDocumentDoc, {}, IDocumentMethods>;
 

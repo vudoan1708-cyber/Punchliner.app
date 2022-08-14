@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { ERROR_EN } from "../shared/locale.en";
 import ApiError from "../utils/api-error";
 
 export function errorHandler(
@@ -9,11 +10,11 @@ export function errorHandler(
 ) {
   response.header("Content-Type", "application/json");
 
-  const statusCode = error.statusCode || 400;
+  const statusCode = error.statusCode ?? 400;
 
   response.status(statusCode).send({
     success: false,
-    message: error.message,
+    message: ERROR_EN[error.code] || error.message,
     code: error.code,
   });
 }

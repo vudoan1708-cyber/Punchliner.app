@@ -3,12 +3,17 @@ import passportJwt from "passport-jwt";
 import httpStatus from "http-status";
 import AccountModel from "../models/account";
 import ApiError from "../utils/api-error";
-import { INVALID_PASSWORD_ERROR, USER_NOT_FOUND } from "../shared/error-codes";
+import { INVALID_PASSWORD_ERROR, USER_NOT_FOUND } from "../shared/error";
 import configs from "../configs";
 
 const LocalStrategy = passportLocal.Strategy;
 const JwtStrategy = passportJwt.Strategy;
 const ExtractJwt = passportJwt.ExtractJwt;
+
+// function cookieJwtExtractor(req: Request) {
+//   if (!req || !req.cookies) return null;
+//   if (req && req.cookies) return req.cookies["jwt"];
+// }
 
 export const PassportLocalStrategy = new LocalStrategy(
   { usernameField: "email" },
