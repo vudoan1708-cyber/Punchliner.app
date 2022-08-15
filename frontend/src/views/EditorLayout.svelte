@@ -19,6 +19,10 @@
       lookUpName: 'display',
       title: 'Click to hide',
     },
+    {
+      lookUpName: 'save',
+      title: 'Click to save document',
+    },
   ];
   let controlClicked: boolean = false;
 

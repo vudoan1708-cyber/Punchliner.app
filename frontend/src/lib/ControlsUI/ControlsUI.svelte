@@ -27,7 +27,7 @@
       <span
         class="icon_wrapper"
         title={control.title}
-        {disabled}
+        disabled={disabled && (control.lookUpName === 'display' || control.lookUpName === 'hide')}
         on:click={() => { onIconClicked(`${control.lookUpName}-click`); }}>
         <Icon name={control.lookUpName} style="color: var(--color-primary);" />
       </span>

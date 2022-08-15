@@ -13,7 +13,7 @@ interface Cookie {
   path?: string;
   secure?: boolean;
   sameSite?: CookieSameSite;
-  value: string|number|boolean;
+  value: string | number | boolean;
 }
 
 export const localstore = {
@@ -65,7 +65,14 @@ interface ICookieStore {
 export const cookiestore: ICookieStore = {
   s: document.cookie,
   type: 'cookie',
-  set({ name, value, expires, path, secure = (document.location.protocol === 'https:'), sameSite = 'lax' }) {
+  set({
+    name,
+    value,
+    expires,
+    path,
+    secure = (document.location.protocol === 'https:'),
+    sameSite = 'lax',
+  }) {
     let valueToUse;
     if (value !== undefined && typeof (value) === 'object') valueToUse = JSON.stringify(value);
     else valueToUse = encodeURIComponent(value);

@@ -30,6 +30,7 @@ const getFetch = (url: string): IGetFetch => {
     if (res.status === 204) return null;
     const json = await res.json();
 
+    // eslint-disable-next-line no-console
     if (isDev()) console.log(json);
 
     return json;
