@@ -133,7 +133,7 @@
   (() => {
     const { pathname, search } = window.location;
     if (invalidLocation(pathname, search)) {
-      navigate('/account/login?error_message=session%20ID%20does%20not%20match');
+      navigate('/account/login?error_message=Session%20ID%20or%20user%20ID%20does%20not%20match');
     }
   })();
 </script>
