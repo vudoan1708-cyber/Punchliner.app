@@ -8,12 +8,12 @@
   import type { SelectedText } from '../../types/SelectedText';
 
   export let controls: Control[] = [];
-  export let tempSelectedText: SelectedText = null;
+  export let tempSelectedText: SelectedText | null = null;
 
   const dispatch = createEventDispatcher();
 
   // Event Handler
-  const onIconClicked = (which) => {
+  const onIconClicked = (which: string) => {
     dispatch(which);
   };
 

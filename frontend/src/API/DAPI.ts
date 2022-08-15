@@ -10,17 +10,22 @@ type PatchBody = {
 interface IDocumentSaveBuilder {
   URL: string;
   BODY: PatchBody;
+  addDocumentIdParam(arg: string): IDocumentSaveBuilder;
   addRequestBody({ ...args }: PatchBody): IDocumentSaveBuilder;
   resetRequestBody(): IDocumentSaveBuilder;
-  PATCH(): Promise<any>
+  PATCH(arg: string | void): Promise<any>
 }
 
 export const DocumentSaveBuilder = (): IDocumentSaveBuilder => {
   const blueprint = {
-    URL: `${DAPI}/register`,
+    URL: `${DAPI}/save`,
     BODY: {
       title: '',
       content: '',
+    },
+    addDocumentIdParam: (id) => {
+      if (!!id) blueprint.URL += `/${id}`;
+      return blueprint;
     },
     addRequestBody: ({ title = '', content = '' }) => {
       blueprint.BODY = {
@@ -36,7 +41,7 @@ export const DocumentSaveBuilder = (): IDocumentSaveBuilder => {
       };
       return blueprint;
     },
-    PATCH: () => getFetch(blueprint.URL).post(blueprint.BODY),
+    PATCH: (token) => getFetch(blueprint.URL).addToken(token).post(blueprint.BODY),
   };
 
   return blueprint;

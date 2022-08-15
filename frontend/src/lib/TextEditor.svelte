@@ -10,18 +10,18 @@
 
   export let className: string = '';
   export let selectedText: SelectedText[] = [];
-  export let tempSelectedText: SelectedText = null;
+  export let tempSelectedText: SelectedText | null = null;
   export let controlClicked: boolean = false;
 
   const dispatch = createEventDispatcher();
 
-  let editorArea: HTMLTextAreaElement = null;
-  let previewArea: HTMLDivElement = null;
+  let editorArea: HTMLTextAreaElement | null = null;
+  let previewArea: HTMLDivElement | null = null;
 
-  let recentSelection: RecentSelection = null;
+  let recentSelection: RecentSelection | null = null;
 
   const strippedString = (uuid: string, eventType: string): string => {
-    const element = previewArea.querySelector(`[data-uuid="${uuid}"]`);
+    const element = previewArea?.querySelector(`[data-uuid="${uuid}"]`);
     if (!element) return '';
 
     let str = element.innerHTML;
@@ -275,6 +275,10 @@
     }
   };
 
+  const onTextAreaBlurred = () => {
+    dispatch('blur');
+  }
+
   let pasted: string = null;
   const onTextAreaPasted = (e) => {
     // @ts-ignore
@@ -307,7 +311,8 @@
         on:click={textSelected}
         on:keyup={onTextAreaKeyboardEvent}
         on:mousemove={onTextAreaMouseMoved}
-        on:paste={onTextAreaPasted} />
+        on:paste={onTextAreaPasted}
+        on:blur={onTextAreaBlurred} />
       <div id="preview" bind:this={previewArea}></div>
     </div>
   </form>

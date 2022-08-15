@@ -1,5 +1,11 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { navigate } from 'svelte-navigator';
+
+  import Loading from '../components/Loading.svelte';
+  import Modal from '../components/Modal.svelte';
+  import Button from '../components/Button.svelte';
+  import Icon from '../components//Icon/Icon.svelte';
   
   import TextEditor from "../lib/TextEditor.svelte";
   import ControlsUI from "../lib/ControlsUI/ControlsUI.svelte";
@@ -7,6 +13,10 @@
   // Type
   import type { Control } from '../lib/ControlsUI/ControlsUI';
   import type { SelectedText } from '../types/SelectedText';
+  import type { Error } from '../types/Error';
+
+  // API
+  import { DocumentSaveBuilder } from '../API/DAPI';
 
   // Utilities
   import { uuid, appendingArrayWithDuplicateChecker, swapArrayItems } from '../helper/utilities';
@@ -28,13 +38,13 @@
 
   const orderByStartingPosition = (array: SelectedText[]) => array.sort((a, b) => a.start - b.start);
 
-  const modifyControls = (lookUpName: string, changedControl: Control) => {
-    const idx = controls.findIndex((control) => control.lookUpName === lookUpName);
+  const modifyControls = (lookUpName: string, changedControl: Control): void => {
+    const idx: number = controls.findIndex((control) => control.lookUpName === lookUpName);
     controls = swapArrayItems(controls, idx, changedControl);
   };
 
   let className: string = '';
-  const hideContent = (lookUpName: string, changedControl: Control) => {
+  const hideContent = (lookUpName: string, changedControl: Control): void => {
     modifyControls(lookUpName, changedControl);
 
     selectedText = orderByStartingPosition([ ...selectedText, tempSelectedText ]);
@@ -42,7 +52,7 @@
     controlClicked = true;
   };
 
-  const displayContent = (lookUpName: string, changedControl: Control, selected: SelectedText) => {
+  const displayContent = (lookUpName: string, changedControl: Control, selected: SelectedText): void => {
     modifyControls(lookUpName, changedControl);
     
     const idx = selectedText.findIndex((text) => (!!text && text.id === selected.id));
@@ -52,10 +62,10 @@
     }
   };
 
-  const idGenerator = (detail) => uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()} ${detail.start} ${detail.end}`);
+  const idGenerator = (detail): string => uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()} ${detail.start} ${detail.end}`);
 
   // Event Handlers
-  let tempSelectedText: SelectedText = null;
+  let tempSelectedText: SelectedText | null = null;
   let isDuplicate: boolean = false;
   const textSelected = ({ detail }): void => {
     if (!!detail) {
@@ -124,9 +134,69 @@
     selectedText = selectedText.filter((__, idx) => idx !== detail);
   };
 
-  const invalidLocation = (pathname, search) => {
-    const userId = cookiestore.get('userId');
-    const sessionId = cookiestore.get('session');
+  const newDocumentTitle = (): string => {
+    const fullTextContent: string = (document.querySelector('#preview') as HTMLElement | null).innerText;
+    const limitToSave: number = 5;
+
+    if (!fullTextContent || fullTextContent.length < limitToSave) {
+      return 'New Empty Document';
+    }
+    const firstFiveChars: number = fullTextContent.length - (fullTextContent.length - limitToSave);
+    return `${fullTextContent.slice(0, firstFiveChars)}...`;
+  };
+
+  let loading: boolean = false;
+  let documenTitle: string = '';
+  const error: Error = {
+    message: null,
+    detail: null,  
+  };
+  const saveDocument = async () => {
+    loading = true;
+    if (!documenTitle) documenTitle = newDocumentTitle();
+    
+    try {
+      const preview: string = document.querySelector('#preview').innerHTML;
+      const requestBody = {
+        title: documenTitle,
+        content: preview,
+      };
+      console.log(requestBody)
+      const sessionId = cookiestore.get('session');
+      const res = await DocumentSaveBuilder().addDocumentIdParam('').addRequestBody(requestBody).PATCH(sessionId);
+
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return;
+      }
+    } catch (ex) {
+      error.message = ex.message;
+      error.detail = ex.detail;
+    } finally {
+      loading = false;
+    }
+  };
+
+  let savePrompt: boolean = false;
+  const promptSaveDocument = () => {
+    if (!documenTitle) {
+      savePrompt = true;
+      return;
+    }
+
+    savePrompt = false;
+    saveDocument();
+  };
+
+  const onTextEditorBlurred = () => {
+    promptSaveDocument();
+  };
+
+  // Life Cycles
+  const invalidLocation = (pathname: string, search: string) => {
+    const userId: string | void = cookiestore.get('userId');
+    const sessionId: string | void = cookiestore.get('session');
 
     const [ userIdSearchVal, sessionIdSeachVal ] = search.split('&');
 
@@ -134,12 +204,12 @@
       && (!search || (userIdSearchVal.split('=')[1] !== userId || sessionIdSeachVal.split('=')[1] !== sessionId));
   };
 
-  (() => {
+  onMount(() => {
     const { pathname, search } = window.location;
     if (invalidLocation(pathname, search)) {
       navigate('/account/login?error_message=Session%20ID%20or%20user%20ID%20does%20not%20match');
     }
-  })();
+  });
 </script>
 
 <main>
@@ -152,7 +222,8 @@
       on:select={textSelected}
       on:ctrlB={() => { triggerShortcutToHideText(tempSelectedText); }}
       on:text-click={triggerMouseClickToDisplayText}
-      on:tag-strip={removeSelectedText} />
+      on:tag-strip={removeSelectedText}
+      on:blur={onTextEditorBlurred} />
   </section>
 
   <section id="controls_wrap">
@@ -166,8 +237,41 @@
       on:display-click={() => { hideContent('display', {
         lookUpName: 'hide',
         title: 'Click to show',
-      }); }} />
+      }); }}
+      on:save-click={promptSaveDocument} />
   </section>
+
+  {#if loading}
+    <Loading />
+  {/if}
+
+  {#if !!error.message || !!error.detail}
+    <Modal
+      title={error.message}
+      style="min-height: 5em;"
+      backgroundClose
+      on:close={() => { error.message = null; error.detail = null; }}>
+      <div>{error.detail}</div>
+    </Modal>
+  {/if}
+
+  {#if savePrompt}
+    <Modal
+      title="Save The Document"
+      style="max-width: 20em; min-height: 5.5em;"
+      backgroundClose
+      on:close={() => { savePrompt = false; }}>
+      <form class="saveDocs" on:submit|preventDefault>
+        <input type="text" placeholder="Document title..." bind:value={documenTitle} />
+        <Button on:click={promptSaveDocument}>
+          <div class="button_content_wrapper">
+            <Icon name="save" />
+            Save
+          </div>
+        </Button>
+      </form>
+    </Modal>
+  {/if}
 </main>
 
 <style>
@@ -189,5 +293,17 @@
   #controls_wrap {
     position: relative;
     width: 100%;
+  }
+
+  form.saveDocs {
+    display: flex;
+    gap: var(--margin);
+    align-items: center;
+  }
+
+  div.button_content_wrapper {
+    display: flex;
+    gap: calc(var(--margin) / 2);
+    align-items: center;
   }
 </style>
