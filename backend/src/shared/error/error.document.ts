@@ -5,6 +5,7 @@ export const DOCUMENT_NOT_FOUND = "PAE010";
 export const DOCUMENT_ALREADY_SHARED = "PAE011";
 export const DOCUMENT_CONTENT_REQUIRED = "PAE012";
 export const DOCUMENT_VIEW_FORBIDDEN = "PAE013";
+export const DOCUMENT_VIEW_FORBIDDEN_WRONG_PASSCODE = "PAE014";
 
 export type DocumentErrorCode =
   | "PAE007"
@@ -13,4 +14,5 @@ export type DocumentErrorCode =
   | "PAE010"
   | "PAE011"
   | "PAE012"
-  | "PAE013";
+  | "PAE013"
+  | "PAE014";

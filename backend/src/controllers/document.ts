@@ -11,6 +11,7 @@ import {
   DOCUMENT_ALREADY_SHARED,
   DOCUMENT_NOT_FOUND,
   DOCUMENT_VIEW_FORBIDDEN,
+  DOCUMENT_VIEW_FORBIDDEN_WRONG_PASSCODE,
   UNAUTHORIZED,
 } from "../shared/error";
 import DocumentService from "../services/document.service";
@@ -134,6 +135,16 @@ const getDocumentById: RequestHandlerWithType<
       _id: documentId,
     });
 
+    if (!documentDetail) {
+      throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
+    }
+
+    const isOwner = req.user._id === documentDetail._id.toString();
+
+    if (!documentDetail.isShared && !isOwner) {
+      throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
+    }
+
     const document = await DocumentService.canUserViewDocument(
       documentDetail,
       req.user._id,
@@ -141,7 +152,11 @@ const getDocumentById: RequestHandlerWithType<
     );
 
     if (!document) {
-      throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        DOCUMENT_VIEW_FORBIDDEN_WRONG_PASSCODE,
+        true
+      );
     }
 
     res.status(httpStatus.OK).json(createResponse({ document }));

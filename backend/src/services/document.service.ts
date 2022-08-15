@@ -22,9 +22,10 @@ async function canUserViewDocument(
   passcode?: string
 ): Promise<NullableDocumentResponse> {
   try {
-    if (!document || !document.isShared) return null;
+    if (!document) return null;
     // NOTE: check if user is owner, if yes -> return
     if (document.ownerId.toString() === userId) return document;
+    if (!document.isShared) return null;
     // NOTE: if not, then check the passcode
     if (!passcode) return null;
     const isValidPasscode = await document.comparePasscode(passcode);
