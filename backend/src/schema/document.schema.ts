@@ -37,6 +37,9 @@ const GetDocumentByIdSchema = z.object({
       message: SAVE_DOCUMENT_INVALID_DOCUMENT_ID,
       path: ["documentId"],
     }),
+  query: z.object({
+    passcode: z.string().optional(),
+  }),
 });
 
 const ShareDocumentSchema = z.object({

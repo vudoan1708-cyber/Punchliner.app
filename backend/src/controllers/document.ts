@@ -10,6 +10,7 @@ import ApiError from "../utils/api-error";
 import {
   DOCUMENT_ALREADY_SHARED,
   DOCUMENT_NOT_FOUND,
+  DOCUMENT_VIEW_FORBIDDEN,
   UNAUTHORIZED,
 } from "../shared/error";
 import DocumentService from "../services/document.service";
@@ -116,7 +117,7 @@ const createDocument: RequestHandlerWithType<{
 
 const getDocumentById: RequestHandlerWithType<
   any,
-  any,
+  { passcode?: string },
   { documentId: string }
 > = async (req, res, next) => {
   try {
@@ -126,14 +127,24 @@ const getDocumentById: RequestHandlerWithType<
 
     const { documentId } = req.params;
 
+    const { passcode } = req.query;
+
+    // NOTE: get document by id
     const documentDetail = await DocumentModel.findOne({
       _id: documentId,
-      ownerId: req.user._id,
     });
 
-    res
-      .status(httpStatus.OK)
-      .json(createResponse({ document: documentDetail }));
+    const document = await DocumentService.canUserViewDocument(
+      documentDetail,
+      req.user._id,
+      passcode
+    );
+
+    if (!document) {
+      throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
+    }
+
+    res.status(httpStatus.OK).json(createResponse({ document }));
   } catch (e) {
     next(e);
   }
