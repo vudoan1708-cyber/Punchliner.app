@@ -1,11 +1,13 @@
+import { ErrorCode } from "../shared/error";
+
 class ApiError extends Error {
   statusCode: number;
   isOperational: boolean;
-  code: string;
+  code: ErrorCode;
 
   constructor(
     statusCode: number,
-    code: string,
+    code: ErrorCode,
     isOperational = true,
     stack = ""
   ) {
