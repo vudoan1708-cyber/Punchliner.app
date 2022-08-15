@@ -10,6 +10,7 @@
 
   // Utilities
   import { uuid, appendingArrayWithDuplicateChecker, swapArrayItems } from '../helper/utilities';
+  import { cookiestore } from '../helper/storage';
 
   let selectedText: SelectedText[] = [];
 
@@ -120,12 +121,19 @@
   };
 
   const invalidLocation = (pathname, search) => {
-    return pathname.includes('/editor') && (!search || !search.includes('?userId=') || !search.includes('%22%22'));
+    const userId = cookiestore.get('userId');
+    const sessionId = cookiestore.get('session');
+
+    const [ userIdSearchVal, sessionIdSeachVal ] = search.split('&');
+
+    return pathname.includes('/editor')
+      && (!search || (userIdSearchVal.split('=')[1] !== userId || sessionIdSeachVal.split('=')[1] !== sessionId));
   };
+
   (() => {
     const { pathname, search } = window.location;
     if (invalidLocation(pathname, search)) {
-      navigate('/account/login');
+      navigate('/account/login?error_message=session%20ID%20does%20not%20match');
     }
   })();
 </script>

@@ -3,7 +3,6 @@
   import Register from '../lib/Account/Register.svelte';
 
   export let accessActivity: string = 'login';
-  console.log(accessActivity)
 </script>
 
 <!-- <template> -->
@@ -20,6 +19,8 @@
 
 <style>
   div.account_container {
+    position: relative;
+    height: 100%;
     display: flex;
     justify-content: center;
   }
