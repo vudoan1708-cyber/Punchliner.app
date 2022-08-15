@@ -1,6 +1,7 @@
 import z from "zod";
 import {
   CREATE_DOCUMENT_INVALID_TITLE,
+  DOCUMENT_CONTENT_REQUIRED,
   SAVE_DOCUMENT_INVALID_DOCUMENT_ID,
   SHARE_DOCUMENT_INVALID_PASSCODE,
 } from "../shared/error";
@@ -15,7 +16,8 @@ const SaveDocumentSchema = z.object({
       path: ["documentId"],
     }),
   body: z.object({
-    content: z.string().optional(),
+    content: z.string().min(6, DOCUMENT_CONTENT_REQUIRED),
+    title: z.string().min(6, CREATE_DOCUMENT_INVALID_TITLE),
   }),
 });
 
