@@ -6,10 +6,13 @@ type PatchBody = {
   content: string;
 };
 
-/** Document Save */
-interface IDocumentSaveBuilder {
+interface IDocumentSharedBuilder {
   URL: string;
   BODY: PatchBody;
+}
+
+/** Document Save */
+interface IDocumentSaveBuilder extends IDocumentSharedBuilder {
   addDocumentIdParam(arg: string): IDocumentSaveBuilder;
   addRequestBody({ ...args }: PatchBody): IDocumentSaveBuilder;
   resetRequestBody(): IDocumentSaveBuilder;
@@ -41,7 +44,41 @@ export const DocumentSaveBuilder = (): IDocumentSaveBuilder => {
       };
       return blueprint;
     },
-    PATCH: (token) => getFetch(blueprint.URL).addToken(token).post(blueprint.BODY),
+    PATCH: (token) => getFetch(blueprint.URL).addToken(token).patch(blueprint.BODY),
+  };
+
+  return blueprint;
+};
+
+/** Document Create */
+interface IDocumentCreateBuilder extends IDocumentSharedBuilder {
+  addRequestBody({ ...args }: PatchBody): IDocumentCreateBuilder;
+  resetRequestBody(): IDocumentCreateBuilder;
+  POST(arg: string | void): Promise<any>
+}
+
+export const DocumentCreateBuilder = (): IDocumentCreateBuilder => {
+  const blueprint = {
+    URL: DAPI,
+    BODY: {
+      title: '',
+      content: '',
+    },
+    addRequestBody: ({ title = '', content = '' }) => {
+      blueprint.BODY = {
+        title,
+        content,
+      };
+      return blueprint;
+    },
+    resetRequestBody: () => {
+      blueprint.BODY = {
+        title: '',
+        content: '',
+      };
+      return blueprint;
+    },
+    POST: (token) => getFetch(blueprint.URL).addToken(token).post(blueprint.BODY),
   };
 
   return blueprint;

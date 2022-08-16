@@ -16,7 +16,7 @@
   import type { Error } from '../types/Error';
 
   // API
-  import { DocumentSaveBuilder } from '../API/DAPI';
+  import { DocumentCreateBuilder, DocumentSaveBuilder } from '../API/DAPI';
 
   // Utilities
   import { uuid, appendingArrayWithDuplicateChecker, swapArrayItems } from '../helper/utilities';
@@ -146,24 +146,50 @@
   };
 
   let loading: boolean = false;
-  let documenTitle: string = '';
+  let documentTitle: string = '';
+  let documentId: string = '';
   const error: Error = {
     message: null,
     detail: null,  
   };
+  const sessionId = cookiestore.get('session');
   const saveDocument = async () => {
     loading = true;
-    if (!documenTitle) documenTitle = newDocumentTitle();
     
     try {
       const preview: string = document.querySelector('#preview').innerHTML;
       const requestBody = {
-        title: documenTitle,
+        title: documentTitle,
         content: preview,
       };
       console.log(requestBody)
-      const sessionId = cookiestore.get('session');
-      const res = await DocumentSaveBuilder().addDocumentIdParam('').addRequestBody(requestBody).PATCH(sessionId);
+      const res = await DocumentSaveBuilder().addDocumentIdParam(documentId).addRequestBody(requestBody).PATCH(sessionId);
+
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return;
+      }
+    } catch (ex) {
+      error.message = ex.message;
+      error.detail = ex.detail;
+    } finally {
+      loading = false;
+    }
+  };
+
+  const createDocument = async () => {
+    loading = true;
+
+    if (!documentTitle) documentTitle = newDocumentTitle();
+    
+    try {
+      const requestBody = {
+        title: documentTitle,
+        content: '',
+      };
+      console.log(requestBody);
+      const res = await DocumentCreateBuilder().addRequestBody(requestBody).POST(sessionId);
 
       if (!res.success) {
         error.message = res.message;
@@ -180,7 +206,7 @@
 
   let savePrompt: boolean = false;
   const promptSaveDocument = () => {
-    if (!documenTitle) {
+    if (!documentTitle) {
       savePrompt = true;
       return;
     }
@@ -190,6 +216,7 @@
   };
 
   const onTextEditorBlurred = () => {
+    if (!documentTitle) return;
     promptSaveDocument();
   };
 
@@ -208,7 +235,16 @@
     const { pathname, search } = window.location;
     if (invalidLocation(pathname, search)) {
       navigate('/account/login?error_message=Session%20ID%20or%20user%20ID%20does%20not%20match');
+      return;
     }
+
+    // Make 2 or 3 API calls here
+    // Document Overview API (get document ID(s))
+
+    // If not document retrieved, Document Create API here
+    createDocument();
+
+    // Document Query (1st if not last editted)
   });
 </script>
 
@@ -262,7 +298,7 @@
       backgroundClose
       on:close={() => { savePrompt = false; }}>
       <form class="saveDocs" on:submit|preventDefault>
-        <input type="text" placeholder="Document title..." bind:value={documenTitle} />
+        <input type="text" placeholder="Document title..." bind:value={documentTitle} />
         <Button on:click={promptSaveDocument}>
           <div class="button_content_wrapper">
             <Icon name="save" />

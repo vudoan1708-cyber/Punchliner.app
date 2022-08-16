@@ -28,7 +28,7 @@ const getFetch = (url: string): IGetFetch => {
   const jsonify = async (options: object): Promise<any> => {
     const res: Response = await fetch(url, options);
     if (res.status === 204) return null;
-    const json = await res.json();
+    const json: Promise<any> = await res.json();
 
     // eslint-disable-next-line no-console
     if (isDev()) console.log(json);
