@@ -3,7 +3,7 @@ import {
   INVALID_CONFIRM_ERROR,
   INVALID_EMAIL_ERROR,
   INVALID_PASSWORD_ERROR,
-} from "../shared/error-codes";
+} from "../shared/error";
 
 const RegisterSchema = z.object({
   body: z

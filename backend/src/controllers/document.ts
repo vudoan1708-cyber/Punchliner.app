@@ -7,7 +7,11 @@ import { createResponse } from "../utils/response";
 import DocumentModel from "../models/document";
 import { paginate } from "../utils/pagination";
 import ApiError from "../utils/api-error";
-import { UNAUTHORIZED } from "../shared/error-codes";
+import {
+  DOCUMENT_ALREADY_SHARED,
+  DOCUMENT_NOT_FOUND,
+  UNAUTHORIZED,
+} from "../shared/error";
 import DocumentService from "../services/document.service";
 
 const getDocuments: RequestHandlerWithType<any, PaginationOption> = async (
@@ -135,4 +139,53 @@ const getDocumentById: RequestHandlerWithType<
   }
 };
 
-export default { getDocuments, saveDocument, createDocument, getDocumentById };
+const shareDocument: RequestHandlerWithType<
+  {
+    passcode: string;
+  },
+  any,
+  { documentId: string }
+> = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
+    }
+
+    const { documentId } = req.params;
+
+    const { passcode } = req.body;
+
+    const targetDocument = await DocumentModel.findOne({
+      _id: documentId,
+      ownerId: req.user._id,
+    });
+
+    if (!targetDocument) {
+      throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
+    }
+
+    if (targetDocument.isShared) {
+      throw new ApiError(httpStatus.CONFLICT, DOCUMENT_ALREADY_SHARED, true);
+    }
+
+    targetDocument.isShared = true;
+
+    targetDocument.passcode = passcode;
+
+    await targetDocument.save();
+
+    res
+      .status(httpStatus.OK)
+      .json(createResponse({ document: targetDocument }));
+  } catch (e) {
+    next(e);
+  }
+};
+
+export default {
+  getDocuments,
+  saveDocument,
+  shareDocument,
+  createDocument,
+  getDocumentById,
+};

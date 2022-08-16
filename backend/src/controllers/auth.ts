@@ -1,6 +1,6 @@
 import httpStatus from "http-status";
 import AccountModel from "../models/account";
-import { USER_ALREADY_EXISTED, UNAUTHORIZED } from "../shared/error-codes";
+import { USER_ALREADY_EXISTED, UNAUTHORIZED } from "../shared/error";
 import { RequestHandlerWithType } from "../shared/request-type";
 import ApiError from "../utils/api-error";
 import { createResponse } from "../utils/response";
