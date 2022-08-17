@@ -145,6 +145,7 @@
   };
 
   let loading: boolean = false;
+  let newContentAdded: boolean = false;
   let documentTitle: string = '';
   let documentId: string = '';
   const error: Error = {
@@ -152,6 +153,7 @@
     detail: null,  
   };
   const sessionId = cookiestore.get('session');
+
   const saveDocument = async () => {
     loading = true;
     
@@ -168,6 +170,7 @@
         error.detail = res.detail;
         return;
       }
+      newContentAdded = false;
     } catch (ex) {
       error.message = ex.message;
       error.detail = ex.detail;
@@ -229,8 +232,17 @@
 
   const onTextEditorBlurred = () => {
     if (!documentTitle || !canQuickSave) return;
+    if (!newContentAdded) return;
+
     promptSaveDocument();
   };
+
+  window.addEventListener('beforeunload', (e) => {
+    if (!newContentAdded) return;
+
+    saveDocument();
+    e.returnValue = 'There is some content that has not been saved. Are you sure you want to leave?';
+  });
 
   // Life Cycles
   onMount(() => {
@@ -253,10 +265,12 @@
       {selectedText}
       content={loadedDocument.content}
       isLoaded={loadedDocument.loaded}
+      bind:newContentAdded
       bind:tempSelectedText
       bind:controlClicked
       on:select={textSelected}
       on:ctrlB={() => { triggerShortcutToHideText(tempSelectedText); }}
+      on:ctrlS={promptSaveDocument}
       on:text-click={triggerMouseClickToDisplayText}
       on:tag-strip={removeSelectedText}
       on:blur={onTextEditorBlurred} />
@@ -283,11 +297,11 @@
 
   {#if !!error.message || !!error.detail}
     <Modal
-      title={error.message}
+      title="Error"
       style="min-height: 5em;"
       backgroundClose
       on:close={() => { error.message = null; error.detail = null; }}>
-      <div>{error.detail}</div>
+      <div>{error.message}</div>
     </Modal>
   {/if}
 

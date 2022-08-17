@@ -12,6 +12,7 @@
   export let selectedText: SelectedText[] = [];
   export let content: string = '';
   export let isLoaded: boolean = false;
+  export let newContentAdded: boolean = false;
   export let tempSelectedText: SelectedText | null = null;
   export let controlClicked: boolean = false;
 
@@ -21,6 +22,8 @@
   let previewArea: HTMLDivElement | null = null;
 
   let recentSelection: RecentSelection | null = null;
+
+  const replaceHTMLTags = (str: string): string => str.replace( /(<([^>]+)>)/ig, '');
 
   const strippedString = (uuid: string, eventType: string): string => {
     const element = previewArea?.querySelector(`[data-uuid="${uuid}"]`);
@@ -39,7 +42,7 @@
     // Regular expression to identify HTML tags in 
     // the input string. Replacing the identified 
     // HTML tag with a null string.
-    return str.replace( /(<([^>]+)>)/ig, '');
+    return replaceHTMLTags(str);
   };
 
   const removeClickEvent = (uuid: string, eventType: string): string => {
@@ -251,6 +254,8 @@
         ? modifyHTMLContent(characterCounts(e), e.inputType)
         : editorArea.value;
       previewArea.scrollTop = editorArea.scrollTop;
+
+      newContentAdded = true;
     }
   };
 
@@ -258,9 +263,10 @@
     previewArea.scrollTop = e.target.scrollTop;
   };
 
-  const onTextAreaKeyboardEvent = (e) => {
+  const onTextAreaKeyUpEvent = (e) => {
     if ((e.keyCode === 66 || e.code === 'KeyB') && !!e.ctrlKey) {
       dispatch('ctrlB');
+      return;
     }
 
     const arrowKeysPressed = (
@@ -271,6 +277,12 @@
     );
     if (!!arrowKeysPressed && !!e.shiftKey) {
       textSelected();
+    }
+  };
+  const onTextAreaKeyDownEvent = (e) => {
+    if ((e.keyCode === 83 || e.code === 'KeyS') && !!e.ctrlKey) {
+      e.preventDefault();
+      dispatch('ctrlS');
     }
   };
 
@@ -301,9 +313,9 @@
     appendClickEvent();
   };
   $: if (!!isLoaded && !!editorArea && !!previewArea) {
-    console.log(content);
-    editorArea.value = content;
-    previewArea.innerText = content;
+    editorArea.value = replaceHTMLTags(content);
+    previewArea.innerHTML = content;
+    console.log(editorArea.value, content);
   };
 </script>
 
@@ -318,7 +330,8 @@
         on:input={onTextAreaChanged}
         on:scroll={onTextAreaScrolled}
         on:click={textSelected}
-        on:keyup={onTextAreaKeyboardEvent}
+        on:keyup={onTextAreaKeyUpEvent}
+        on:keydown={onTextAreaKeyDownEvent}
         on:mousemove={onTextAreaMouseMoved}
         on:paste={onTextAreaPasted}
         on:blur={onTextAreaBlurred} />
