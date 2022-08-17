@@ -36,6 +36,11 @@ const DocumentSchema = new Schema<
       required: true,
     },
     passcode: String,
+    updatedBy: {
+      type: Schema.Types.ObjectId,
+      ref: ACCOUNT_MODEL_NAME,
+      required: false,
+    },
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
