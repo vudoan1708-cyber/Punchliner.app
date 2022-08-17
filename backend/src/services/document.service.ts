@@ -9,11 +9,17 @@ type NullableDocumentResponse =
       } & IDocumentMethods)
   | null;
 
-function countContentWords(content: string): number {
-  const refinedContent = content.replaceAll(/\\/g, "");
-  const $ = load(refinedContent);
-  const innerText = $("body").text().replaceAll(/\s/g, "");
-  return innerText.length ?? 1;
+function countContentWords(content?: string): number {
+  try {
+    if (!content) return 1;
+    // const refinedContent = content?.replaceAll(/\\/g, "");
+    const $ = load(content);
+    const innerText = $.text()?.replaceAll(/\s/g, "");
+    return innerText?.length ?? 1;
+  } catch (e) {
+    console.error("count word error:", e);
+    return content?.length ?? 1;
+  }
 }
 
 async function canUserViewDocument(
