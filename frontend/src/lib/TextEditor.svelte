@@ -11,7 +11,7 @@
   export let className: string = '';
   export let selectedText: SelectedText[] = [];
   export let content: string = '';
-  export let isLoaded: boolean = false;
+  export let isContentLoaded: boolean = false;
   export let newContentAdded: boolean = false;
   export let tempSelectedText: SelectedText | null = null;
   export let controlClicked: boolean = false;
@@ -268,6 +268,11 @@
       dispatch('ctrlB');
       return;
     }
+    if ((e.keyCode === 0 || e.code === 'Digit0' || e.code === 'Numpad0') && !!e.ctrlKey) {
+      e.preventDefault();
+      dispatch('ctrlZero');
+      return;
+    }
 
     const arrowKeysPressed = (
       (e.keyCode === 37 || e.code === 'ArrowLeft') ||
@@ -312,10 +317,10 @@
     previewArea.innerHTML = modifyHTMLContent(0);
     appendClickEvent();
   };
-  $: if (!!isLoaded && !!editorArea && !!previewArea) {
+  $: if (!!isContentLoaded && !!editorArea && !!previewArea) {
     editorArea.value = replaceHTMLTags(content);
     previewArea.innerHTML = content;
-    console.log(editorArea.value, content);
+    isContentLoaded = false;
   };
 </script>
 

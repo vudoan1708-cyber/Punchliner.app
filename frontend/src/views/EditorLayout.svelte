@@ -26,11 +26,15 @@
   let controls: Control[] = [
     {
       lookUpName: 'display',
-      title: 'Click to hide',
+      title: 'Click to hide\nShortcut combination is CTRL + B',
     },
     {
       lookUpName: 'save',
-      title: 'Click to save document',
+      title: 'Click to save document\nShortcut combination is CTRL + S',
+    },
+    {
+      lookUpName: 'add',
+      title: 'Click to add a new document\nShortcut combination is CTRL + 0',
     },
   ];
   let controlClicked: boolean = false;
@@ -97,21 +101,21 @@
       });
       else modifyControls('hide', {
         lookUpName: 'display',
-        title: 'Click to hide',
+        title: 'Click to hide\nShortcut combination is CTRL + B',
       });
       return;
     }
     tempSelectedText = null;
     modifyControls('hide', {
       lookUpName: 'display',
-      title: 'Click to hide',
+      title: 'Click to hide\nShortcut combination is CTRL + B',
     });
   };
 
   const triggerShortcutToHideText = (text: SelectedText) => {
     if (!!isDuplicate) displayContent('hide', {
       lookUpName: 'display',
-      title: 'Click to hide',
+      title: 'Click to hide\nShortcut combination is CTRL + B',
     }, text);
     else hideContent('display', {
       lookUpName: 'hide',
@@ -134,14 +138,7 @@
   };
 
   const newDocumentTitle = (): string => {
-    const fullTextContent: string = (document.querySelector('#preview') as HTMLElement | null).innerText;
-    const limitToSave: number = 5;
-
-    if (!fullTextContent || fullTextContent.length < limitToSave) {
-      return 'New Empty Document';
-    }
-    const firstFiveChars: number = fullTextContent.length - (fullTextContent.length - limitToSave);
-    return `${fullTextContent.slice(0, firstFiveChars)}...`;
+    return 'New Empty Document';
   };
 
   let loading: boolean = false;
@@ -191,6 +188,7 @@
     loading = true;
 
     documentTitle = newDocumentTitle();
+    loadedDocument.content = '';
 
     try {
       const requestBody = {
@@ -213,7 +211,6 @@
     } finally {
       loading = false;
       savePrompt = true;
-      loadedDocument.loaded = false;
     }
   };
 
@@ -239,8 +236,6 @@
 
   window.addEventListener('beforeunload', (e) => {
     if (!newContentAdded) return;
-
-    saveDocument();
     e.returnValue = 'There is some content that has not been saved. Are you sure you want to leave?';
   });
 
@@ -264,13 +259,14 @@
       {className}
       {selectedText}
       content={loadedDocument.content}
-      isLoaded={loadedDocument.loaded}
+      bind:isContentLoaded={loadedDocument.loaded}
       bind:newContentAdded
       bind:tempSelectedText
       bind:controlClicked
       on:select={textSelected}
       on:ctrlB={() => { triggerShortcutToHideText(tempSelectedText); }}
       on:ctrlS={promptSaveDocument}
+      on:ctrlZero={createDocument}
       on:text-click={triggerMouseClickToDisplayText}
       on:tag-strip={removeSelectedText}
       on:blur={onTextEditorBlurred} />
@@ -282,13 +278,14 @@
       {tempSelectedText}
       on:hide-click={() => { displayContent('hide', {
         lookUpName: 'display',
-        title: 'Click to hide',
+        title: 'Click to hide\nShortcut combination is CTRL + B',
       }, tempSelectedText); }}
       on:display-click={() => { hideContent('display', {
         lookUpName: 'hide',
         title: 'Click to show',
       }); }}
-      on:save-click={promptSaveDocument} />
+      on:save-click={promptSaveDocument}
+      on:add-click={createDocument} />
   </section>
 
   {#if loading}
