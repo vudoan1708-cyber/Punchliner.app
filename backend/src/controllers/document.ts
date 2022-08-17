@@ -1,4 +1,5 @@
 import httpStatus from "http-status";
+import { Types } from "mongoose";
 import type {
   PaginationOption,
   RequestHandlerWithType,
@@ -49,32 +50,36 @@ const getDocuments: RequestHandlerWithType<any, PaginationOption> = async (
 const saveDocument: RequestHandlerWithType<
   {
     content: string;
+    title: string;
   },
   any,
   { documentId: string }
 > = async (req, res, next) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user._id) {
       throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
     }
 
     const { documentId } = req.params;
 
-    const { content: newContent } = req.body;
+    const { content: newContent, title: newTitle } = req.body;
+
+    const targetDocument = await DocumentModel.findOne({
+      _id: documentId,
+    });
+
+    if (!targetDocument) {
+      throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
+    }
 
     const words = DocumentService.countContentWords(newContent);
 
-    const updatedDocument = await DocumentModel.findByIdAndUpdate(
-      {
-        _id: documentId,
-      },
-      {
-        $set: {
-          content: newContent,
-          words,
-        },
-      }
-    );
+    targetDocument.content = newContent;
+    targetDocument.words = words;
+    targetDocument.title = newTitle;
+    targetDocument.updatedBy = new Types.ObjectId(req.user._id);
+
+    const updatedDocument = await targetDocument.save();
 
     res
       .status(httpStatus.OK)
