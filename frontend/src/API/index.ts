@@ -1,4 +1,7 @@
+import { navigate } from 'svelte-navigator';
+
 import { isDev } from '../helper/utilities';
+import { cookiestore } from '../helper/storage';
 
 type Options = {
   method?: string;
@@ -28,6 +31,11 @@ const getFetch = (url: string): IGetFetch => {
   const jsonify = async (options: object): Promise<any> => {
     const res: Response = await fetch(url, options);
     if (res.status === 204) return null;
+    if (res.status === 401) {
+      cookiestore.removeAll();
+      navigate('/account/login?error_message=Session%20ID%20%20has%20been%20expired');
+      return null;
+    }
     const json: Promise<any> = await res.json();
 
     // eslint-disable-next-line no-console

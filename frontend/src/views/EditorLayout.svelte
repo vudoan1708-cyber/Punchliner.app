@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { navigate } from 'svelte-navigator';
 
   import Loading from '../components/Loading.svelte';
   import Modal from '../components/Modal.svelte';
@@ -162,7 +161,6 @@
         title: documentTitle,
         content: preview,
       };
-      console.log(requestBody)
       const res = await DocumentSaveBuilder().addDocumentIdParam(documentId).addRequestBody(requestBody).PATCH(sessionId);
 
       if (!res.success) {
@@ -178,17 +176,24 @@
     }
   };
 
+  let loadedDocument: {
+    loaded: boolean;
+    content: string;
+  } = {
+    loaded: false,
+    content: '',
+  };
+
   const createDocument = async () => {
     loading = true;
 
-    if (!documentTitle) documentTitle = newDocumentTitle();
-    
+    documentTitle = newDocumentTitle();
+
     try {
       const requestBody = {
         title: documentTitle,
-        content: '',
+        content: loadedDocument.content,
       };
-      console.log(requestBody);
       const res = await DocumentCreateBuilder().addRequestBody(requestBody).POST(sessionId);
 
       if (!res.success) {
@@ -196,15 +201,21 @@
         error.detail = res.detail;
         return;
       }
+
+      documentId = res.data.document._id;
+      loadedDocument.loaded = true;
     } catch (ex) {
       error.message = ex.message;
       error.detail = ex.detail;
     } finally {
       loading = false;
+      savePrompt = true;
+      loadedDocument.loaded = false;
     }
   };
 
   let savePrompt: boolean = false;
+  let canQuickSave: boolean = false;
   const promptSaveDocument = () => {
     if (!documentTitle) {
       savePrompt = true;
@@ -212,37 +223,24 @@
     }
 
     savePrompt = false;
+    canQuickSave = true;
     saveDocument();
   };
 
   const onTextEditorBlurred = () => {
-    if (!documentTitle) return;
+    if (!documentTitle || !canQuickSave) return;
     promptSaveDocument();
   };
 
   // Life Cycles
-  const invalidLocation = (pathname: string, search: string) => {
-    const userId: string | void = cookiestore.get('userId');
-    const sessionId: string | void = cookiestore.get('session');
-
-    const [ userIdSearchVal, sessionIdSeachVal ] = search.split('&');
-
-    return pathname.includes('/editor')
-      && (!search || (userIdSearchVal.split('=')[1] !== userId || sessionIdSeachVal.split('=')[1] !== sessionId));
-  };
-
   onMount(() => {
-    const { pathname, search } = window.location;
-    if (invalidLocation(pathname, search)) {
-      navigate('/account/login?error_message=Session%20ID%20or%20user%20ID%20does%20not%20match');
-      return;
-    }
-
     // Make 2 or 3 API calls here
     // Document Overview API (get document ID(s))
 
     // If not document retrieved, Document Create API here
-    createDocument();
+    setTimeout(() => {
+      createDocument();
+    }, 1000);
 
     // Document Query (1st if not last editted)
   });
@@ -253,6 +251,8 @@
     <TextEditor
       {className}
       {selectedText}
+      content={loadedDocument.content}
+      isLoaded={loadedDocument.loaded}
       bind:tempSelectedText
       bind:controlClicked
       on:select={textSelected}

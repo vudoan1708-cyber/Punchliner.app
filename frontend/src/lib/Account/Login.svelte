@@ -52,7 +52,7 @@
       cookiestore.set({ name: 'session', value: bearer });
       cookiestore.set({ name: 'userId', value: userId });
 
-      navigate(`/editor?userId=${userId}&session=${bearer}`, { replace: false });
+      navigate('/editor', { replace: false });
     } finally {
       loading = false;
     }
