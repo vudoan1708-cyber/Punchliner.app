@@ -7,6 +7,7 @@ interface IDocumentDoc {
   passcode?: string;
   isShared: boolean;
   ownerId: Types.ObjectId;
+  updatedBy?: Types.ObjectId;
 }
 
 interface IDocumentMethods {
