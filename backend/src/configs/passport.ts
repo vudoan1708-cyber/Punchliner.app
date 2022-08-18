@@ -32,7 +32,7 @@ export const PassportLocalStrategy = new LocalStrategy(
 
       if (!isMatch) {
         return done(
-          new ApiError(httpStatus.UNAUTHORIZED, INVALID_PASSWORD_ERROR, true),
+          new ApiError(httpStatus.FORBIDDEN, INVALID_PASSWORD_ERROR, true),
           undefined
         );
       }
