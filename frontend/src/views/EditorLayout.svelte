@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { navigate } from 'svelte-navigator';
+  import { onMount } from 'svelte';
+
+  import Loading from '../components/Loading.svelte';
+  import Modal from '../components/Modal.svelte';
+  import Button from '../components/Button.svelte';
+  import Icon from '../components//Icon/Icon.svelte';
   
   import TextEditor from "../lib/TextEditor.svelte";
   import ControlsUI from "../lib/ControlsUI/ControlsUI.svelte";
@@ -7,6 +12,10 @@
   // Type
   import type { Control } from '../lib/ControlsUI/ControlsUI';
   import type { SelectedText } from '../types/SelectedText';
+  import type { Error } from '../types/Error';
+
+  // API
+  import { DocumentCreateBuilder, DocumentSaveBuilder } from '../API/DAPI';
 
   // Utilities
   import { uuid, appendingArrayWithDuplicateChecker, swapArrayItems } from '../helper/utilities';
@@ -17,20 +26,28 @@
   let controls: Control[] = [
     {
       lookUpName: 'display',
-      title: 'Click to hide',
+      title: 'Click to hide\nShortcut combination is CTRL + B',
+    },
+    {
+      lookUpName: 'save',
+      title: 'Click to save document\nShortcut combination is CTRL + S',
+    },
+    {
+      lookUpName: 'add',
+      title: 'Click to add a new document\nShortcut combination is CTRL + 0',
     },
   ];
   let controlClicked: boolean = false;
 
   const orderByStartingPosition = (array: SelectedText[]) => array.sort((a, b) => a.start - b.start);
 
-  const modifyControls = (lookUpName: string, changedControl: Control) => {
-    const idx = controls.findIndex((control) => control.lookUpName === lookUpName);
+  const modifyControls = (lookUpName: string, changedControl: Control): void => {
+    const idx: number = controls.findIndex((control) => control.lookUpName === lookUpName);
     controls = swapArrayItems(controls, idx, changedControl);
   };
 
   let className: string = '';
-  const hideContent = (lookUpName: string, changedControl: Control) => {
+  const hideContent = (lookUpName: string, changedControl: Control): void => {
     modifyControls(lookUpName, changedControl);
 
     selectedText = orderByStartingPosition([ ...selectedText, tempSelectedText ]);
@@ -38,7 +55,7 @@
     controlClicked = true;
   };
 
-  const displayContent = (lookUpName: string, changedControl: Control, selected: SelectedText) => {
+  const displayContent = (lookUpName: string, changedControl: Control, selected: SelectedText): void => {
     modifyControls(lookUpName, changedControl);
     
     const idx = selectedText.findIndex((text) => (!!text && text.id === selected.id));
@@ -48,10 +65,10 @@
     }
   };
 
-  const idGenerator = (detail) => uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()} ${detail.start} ${detail.end}`);
+  const idGenerator = (detail): string => uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()} ${detail.start} ${detail.end}`);
 
   // Event Handlers
-  let tempSelectedText: SelectedText = null;
+  let tempSelectedText: SelectedText | null = null;
   let isDuplicate: boolean = false;
   const textSelected = ({ detail }): void => {
     if (!!detail) {
@@ -84,21 +101,21 @@
       });
       else modifyControls('hide', {
         lookUpName: 'display',
-        title: 'Click to hide',
+        title: 'Click to hide\nShortcut combination is CTRL + B',
       });
       return;
     }
     tempSelectedText = null;
     modifyControls('hide', {
       lookUpName: 'display',
-      title: 'Click to hide',
+      title: 'Click to hide\nShortcut combination is CTRL + B',
     });
   };
 
   const triggerShortcutToHideText = (text: SelectedText) => {
     if (!!isDuplicate) displayContent('hide', {
       lookUpName: 'display',
-      title: 'Click to hide',
+      title: 'Click to hide\nShortcut combination is CTRL + B',
     }, text);
     else hideContent('display', {
       lookUpName: 'hide',
@@ -120,22 +137,120 @@
     selectedText = selectedText.filter((__, idx) => idx !== detail);
   };
 
-  const invalidLocation = (pathname, search) => {
-    const userId = cookiestore.get('userId');
-    const sessionId = cookiestore.get('session');
-
-    const [ userIdSearchVal, sessionIdSeachVal ] = search.split('&');
-
-    return pathname.includes('/editor')
-      && (!search || (userIdSearchVal.split('=')[1] !== userId || sessionIdSeachVal.split('=')[1] !== sessionId));
+  const newDocumentTitle = (): string => {
+    return 'New Empty Document';
   };
 
-  (() => {
-    const { pathname, search } = window.location;
-    if (invalidLocation(pathname, search)) {
-      navigate('/account/login?error_message=session%20ID%20does%20not%20match');
+  let loading: boolean = false;
+  let newContentAdded: boolean = false;
+  let documentTitle: string = '';
+  let documentId: string = '';
+  const error: Error = {
+    message: null,
+    detail: null,  
+  };
+  const sessionId = cookiestore.get('session');
+
+  const saveDocument = async () => {
+    loading = true;
+    
+    try {
+      const preview: string = document.querySelector('#preview').innerHTML;
+      const requestBody = {
+        title: documentTitle,
+        content: preview,
+      };
+      const res = await DocumentSaveBuilder().addDocumentIdParam(documentId).addRequestBody(requestBody).PATCH(sessionId);
+
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return;
+      }
+      newContentAdded = false;
+    } catch (ex) {
+      error.message = ex.message;
+      error.detail = ex.detail;
+    } finally {
+      loading = false;
     }
-  })();
+  };
+
+  let loadedDocument: {
+    loaded: boolean;
+    content: string;
+  } = {
+    loaded: false,
+    content: '',
+  };
+
+  const createDocument = async () => {
+    loading = true;
+
+    documentTitle = newDocumentTitle();
+    loadedDocument.content = '';
+
+    try {
+      const requestBody = {
+        title: documentTitle,
+        content: loadedDocument.content,
+      };
+      const res = await DocumentCreateBuilder().addRequestBody(requestBody).POST(sessionId);
+
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return;
+      }
+
+      documentId = res.data.document._id;
+      loadedDocument.loaded = true;
+    } catch (ex) {
+      error.message = ex.message;
+      error.detail = ex.detail;
+    } finally {
+      loading = false;
+      savePrompt = true;
+    }
+  };
+
+  let savePrompt: boolean = false;
+  let canQuickSave: boolean = false;
+  const promptSaveDocument = () => {
+    if (!documentTitle) {
+      savePrompt = true;
+      return;
+    }
+
+    savePrompt = false;
+    canQuickSave = true;
+    saveDocument();
+  };
+
+  const onTextEditorBlurred = () => {
+    if (!documentTitle || !canQuickSave) return;
+    if (!newContentAdded) return;
+
+    promptSaveDocument();
+  };
+
+  window.addEventListener('beforeunload', (e) => {
+    if (!newContentAdded) return;
+    e.returnValue = 'There is some content that has not been saved. Are you sure you want to leave?';
+  });
+
+  // Life Cycles
+  onMount(() => {
+    // Make 2 or 3 API calls here
+    // Document Overview API (get document ID(s))
+
+    // If not document retrieved, Document Create API here
+    setTimeout(() => {
+      createDocument();
+    }, 1000);
+
+    // Document Query (1st if not last editted)
+  });
 </script>
 
 <main>
@@ -143,12 +258,18 @@
     <TextEditor
       {className}
       {selectedText}
+      content={loadedDocument.content}
+      bind:isContentLoaded={loadedDocument.loaded}
+      bind:newContentAdded
       bind:tempSelectedText
       bind:controlClicked
       on:select={textSelected}
       on:ctrlB={() => { triggerShortcutToHideText(tempSelectedText); }}
+      on:ctrlS={promptSaveDocument}
+      on:ctrlZero={createDocument}
       on:text-click={triggerMouseClickToDisplayText}
-      on:tag-strip={removeSelectedText} />
+      on:tag-strip={removeSelectedText}
+      on:blur={onTextEditorBlurred} />
   </section>
 
   <section id="controls_wrap">
@@ -157,13 +278,47 @@
       {tempSelectedText}
       on:hide-click={() => { displayContent('hide', {
         lookUpName: 'display',
-        title: 'Click to hide',
+        title: 'Click to hide\nShortcut combination is CTRL + B',
       }, tempSelectedText); }}
       on:display-click={() => { hideContent('display', {
         lookUpName: 'hide',
         title: 'Click to show',
-      }); }} />
+      }); }}
+      on:save-click={promptSaveDocument}
+      on:add-click={createDocument} />
   </section>
+
+  {#if loading}
+    <Loading />
+  {/if}
+
+  {#if !!error.message || !!error.detail}
+    <Modal
+      title="Error"
+      style="min-height: 5em;"
+      backgroundClose
+      on:close={() => { error.message = null; error.detail = null; }}>
+      <div>{error.message}</div>
+    </Modal>
+  {/if}
+
+  {#if savePrompt}
+    <Modal
+      title="Save The Document"
+      style="max-width: 20em; min-height: 5.5em;"
+      backgroundClose
+      on:close={() => { savePrompt = false; }}>
+      <form class="saveDocs" on:submit|preventDefault>
+        <input type="text" placeholder="Document title..." bind:value={documentTitle} />
+        <Button on:click={promptSaveDocument}>
+          <div class="button_content_wrapper">
+            <Icon name="save" />
+            Save
+          </div>
+        </Button>
+      </form>
+    </Modal>
+  {/if}
 </main>
 
 <style>
@@ -185,5 +340,17 @@
   #controls_wrap {
     position: relative;
     width: 100%;
+  }
+
+  form.saveDocs {
+    display: flex;
+    gap: var(--margin);
+    align-items: center;
+  }
+
+  div.button_content_wrapper {
+    display: flex;
+    gap: calc(var(--margin) / 2);
+    align-items: center;
   }
 </style>

@@ -13,7 +13,7 @@ interface Cookie {
   path?: string;
   secure?: boolean;
   sameSite?: CookieSameSite;
-  value: string|number|boolean;
+  value: string | number | boolean;
 }
 
 export const localstore = {
@@ -54,8 +54,8 @@ interface ICookieStore {
   s: string;
   type: string;
   set({ ...args }: Cookie): void;
-  get(arg: string): void;
-  processValue(arg: string): void;
+  get(arg: string): string | void;
+  processValue(arg: string): string;
   getAllRawOrProcessed(arg: boolean): object;
   getAll(): object;
   remove(arg: string): void;
@@ -65,7 +65,14 @@ interface ICookieStore {
 export const cookiestore: ICookieStore = {
   s: document.cookie,
   type: 'cookie',
-  set({ name, value, expires, path, secure = (document.location.protocol === 'https:'), sameSite = 'lax' }) {
+  set({
+    name,
+    value,
+    expires,
+    path,
+    secure = (document.location.protocol === 'https:'),
+    sameSite = 'lax',
+  }) {
     let valueToUse;
     if (value !== undefined && typeof (value) === 'object') valueToUse = JSON.stringify(value);
     else valueToUse = encodeURIComponent(value);
@@ -91,8 +98,8 @@ export const cookiestore: ICookieStore = {
   },
   getAllRawOrProcessed(process) {
     // process - process value or return raw value
-    const cookies = document.cookie.split('; '); const
-      s = {};
+    const cookies = document.cookie.split('; ');
+    const s = {};
     if (cookies.length === 1 && cookies[0] === '') return s;
     for (let i = 0; i < cookies.length; i += 1) {
       const cookie = cookies[i].split('=');

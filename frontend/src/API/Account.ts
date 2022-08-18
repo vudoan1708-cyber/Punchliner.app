@@ -7,7 +7,7 @@ type PostBody = {
   email: string;
   password: string;
   confirm: string;
-}
+};
 
 /** Register Endpoint */
 interface IRegisterBuilder {

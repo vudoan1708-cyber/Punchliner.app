@@ -1,8 +1,23 @@
+import { navigate } from 'svelte-navigator';
+
 import { isDev } from '../helper/utilities';
+import { cookiestore } from '../helper/storage';
+
+type Options = {
+  method?: string;
+  headers: {
+    'Content-Type': string;
+    Authorization?: string;
+  };
+  body?: string;
+};
 
 interface IGetFetch {
+  options: Options;
+  addToken(args: string): IGetFetch;
   get(): Promise<any>;
-  post({ ...args }: object): Promise<any>;
+  post(args: object): Promise<any>;
+  patch(args: object): Promise<any>;
 }
 
 /**
@@ -14,35 +29,60 @@ interface IGetFetch {
  */
 const getFetch = (url: string): IGetFetch => {
   const jsonify = async (options: object): Promise<any> => {
-    const _options_ = {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json;charset=UTF-8',
-      },
+    const res: Response = await fetch(url, options);
+    if (res.status === 204) return null;
+    if (res.status === 401) {
+      cookiestore.removeAll();
+      navigate('/account/login?error_message=Session%20ID%20%20has%20been%20expired');
+      return null;
     }
-    const res: Response = await fetch(url, _options_);
-    if (res.status === 204) return;
-    const json = await res.json();
+    const json: Promise<any> = await res.json();
 
+    // eslint-disable-next-line no-console
     if (isDev()) console.log(json);
 
     return json;
   };
 
-  const fetchCall = {
-    get: async (): Promise<any> => {
-      const options = {
-        method: 'GET',
-      }
-      return jsonify(options);
+  const fetchCall: IGetFetch = {
+    options: {
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+      },
     },
 
-    post: async (body: object = {}): Promise<any> => {
-      const options = {
+    addToken: (token) => {
+      fetchCall.options.headers = {
+        ...fetchCall.options.headers,
+        Authorization: `Bearer ${token}`,
+      };
+      return fetchCall;
+    },
+
+    get: async () => {
+      fetchCall.options = {
+        method: 'GET',
+        ...fetchCall.options,
+      };
+      return jsonify(fetchCall.options);
+    },
+
+    post: async (body = {}) => {
+      fetchCall.options = {
         method: 'POST',
         body: JSON.stringify(body),
+        ...fetchCall.options,
       };
-      return jsonify(options);
+      return jsonify(fetchCall.options);
+    },
+
+    patch: async (body = {}) => {
+      fetchCall.options = {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+        ...fetchCall.options,
+      };
+      return jsonify(fetchCall.options);
     },
   };
 

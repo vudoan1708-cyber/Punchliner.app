@@ -17,6 +17,6 @@ export default (array: Array<any>, index: number, newItem: any): Array<any> => {
     // inserted item
     newItem,
     // part of the array after the specified index
-    ...array.slice(index)
+    ...array.slice(index),
   ];
 };

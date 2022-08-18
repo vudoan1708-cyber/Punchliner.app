@@ -8,12 +8,12 @@
   import type { SelectedText } from '../../types/SelectedText';
 
   export let controls: Control[] = [];
-  export let tempSelectedText: SelectedText = null;
+  export let tempSelectedText: SelectedText | null = null;
 
   const dispatch = createEventDispatcher();
 
   // Event Handler
-  const onIconClicked = (which) => {
+  const onIconClicked = (which: string) => {
     dispatch(which);
   };
 
@@ -27,7 +27,7 @@
       <span
         class="icon_wrapper"
         title={control.title}
-        {disabled}
+        disabled={disabled && (control.lookUpName === 'display' || control.lookUpName === 'hide')}
         on:click={() => { onIconClicked(`${control.lookUpName}-click`); }}>
         <Icon name={control.lookUpName} style="color: var(--color-primary);" />
       </span>
