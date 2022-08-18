@@ -61,7 +61,7 @@
   // Life Cycles
   onMount(() => {
     const { search } = window.location;
-    if (!search.includes('error_message')) return;
+    if (!search.includes('message')) return;
     error.message = decodeURI(search.split('=')[1]);
   });
 

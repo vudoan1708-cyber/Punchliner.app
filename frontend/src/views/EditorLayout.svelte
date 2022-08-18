@@ -15,7 +15,9 @@
   import type { Error } from '../types/Error';
 
   // API
-  import { DocumentCreateBuilder, DocumentSaveBuilder } from '../API/DAPI';
+  import {
+    DocumentCreateBuilder, DocumentSaveBuilder, DocumentOverviewBuilder, DocumentQueryBuilder,
+  } from '../API/DAPI';
 
   // Utilities
   import { uuid, appendingArrayWithDuplicateChecker, swapArrayItems } from '../helper/utilities';
@@ -151,6 +153,7 @@
   };
   const sessionId = cookiestore.get('session');
 
+  // Document Save
   const saveDocument = async () => {
     loading = true;
     
@@ -184,6 +187,7 @@
     content: '',
   };
 
+  // Document Creation
   const createDocument = async () => {
     loading = true;
 
@@ -234,22 +238,69 @@
     promptSaveDocument();
   };
 
+  // Document Overview
+  const getDocuments = async (): Promise<[]> | null => {
+    try {
+      const res = await DocumentOverviewBuilder().addDefaultParams().GET(sessionId);
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return null;
+      }
+      return res.data.documents;
+    } catch (ex) {
+      error.message = ex.message;
+      error.detail = ex.detail;
+      return null;
+    }
+  };
+
+  // Document Query
+  const getDocument = async (id): Promise<any> | null => {
+    try {
+      const res = await DocumentQueryBuilder().addDocumentId(id).GET(sessionId);
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return null;
+      }
+      return res.data.document;
+    } catch (ex) {
+      error.message = ex.message;
+      error.detail = ex.detail;
+      return null;
+    }
+  };
+
   window.addEventListener('beforeunload', (e) => {
     if (!newContentAdded) return;
     e.returnValue = 'There is some content that has not been saved. Are you sure you want to leave?';
   });
 
   // Life Cycles
-  onMount(() => {
+  onMount(async () => {
     // Make 2 or 3 API calls here
+    // Shareable Document check
+
     // Document Overview API (get document ID(s))
+    const allDocs: Array<any> = await getDocuments();
 
     // If not document retrieved, Document Create API here
-    setTimeout(() => {
-      createDocument();
-    }, 1000);
+    if (!!allDocs && allDocs.length === 0) {
+      setTimeout(() => {
+        createDocument();
+      }, 1000);
+      return;
+    }
 
     // Document Query (1st if not last editted)
+    if (!!allDocs && allDocs.length > 0) {
+      const firstDoc = await getDocument(allDocs[0]._id);
+      if (!firstDoc) return;
+
+      loadedDocument.loaded = true;
+      loadedDocument.content = firstDoc.content;
+    }
   });
 </script>
 

@@ -38,7 +38,7 @@
       ({ bearer } = response.data);
       cookiestore.set({ name: 'session', value: bearer });
 
-      navigate('/account/login', { replace: false });
+      navigate('/account/login?message=You%20have%20just%20created%20a%20new%20account\nPlease%20login%20using%20the%20created%20credentials', { replace: false });
     } catch (err) {
       console.error(err);
     } finally {

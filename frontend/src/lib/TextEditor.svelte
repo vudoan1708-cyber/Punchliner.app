@@ -308,9 +308,17 @@
     pasted = (e.clipboardData || window.clipboardData).getData('text');
   };
 
+  const displayNewContent = () => {
+    editorArea.value = replaceHTMLTags(content);
+    previewArea.innerHTML = content;
+    isContentLoaded = false;
+  };
+
   // Life Cycle
   onMount(() => {
     editorArea.focus();
+    displayNewContent();
+    console.log('HERE');
   })
 
   $: if (!!controlClicked) {
@@ -318,9 +326,8 @@
     appendClickEvent();
   };
   $: if (!!isContentLoaded && !!editorArea && !!previewArea) {
-    editorArea.value = replaceHTMLTags(content);
-    previewArea.innerHTML = content;
-    isContentLoaded = false;
+    displayNewContent();
+    console.log('THERE');
   };
 </script>
 
