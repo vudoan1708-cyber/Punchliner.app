@@ -243,7 +243,9 @@
         end: editorArea.selectionEnd,
       };
       dispatch('select', recentSelection);
+      return;
     }
+    dispatch('select', null);
   };
 
   let isWritting: boolean = false;

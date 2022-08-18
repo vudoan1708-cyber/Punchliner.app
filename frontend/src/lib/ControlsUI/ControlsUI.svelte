@@ -27,11 +27,14 @@
       <span
         class="icon_wrapper"
         title={control.title}
-        disabled={disabled && (control.lookUpName === 'display' || control.lookUpName === 'hide')}
+        disabled={disabled && control.disabled}
         on:click={() => { onIconClicked(`${control.lookUpName}-click`); }}>
         <Icon name={control.lookUpName} style="color: var(--color-primary);" />
       </span>
     {/each}
+    <div class="hamburger" title="Click to expand menu" on:click={() => { onIconClicked('hamburger-click'); }}>
+      <Icon name="hamburger" style="color: var(--color-primary);" />
+    </div>
   </div>
 </div>
 <!-- </template> -->
@@ -58,5 +61,11 @@
 
   #toolbar .icon_wrapper[disabled="true"] {
     pointer-events: none;
+  }
+
+  #toolbar .hamburger {
+    margin-top: var(--margin);
+    width: fit-content;
+    cursor: pointer;
   }
 </style>

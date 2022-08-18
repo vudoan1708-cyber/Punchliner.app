@@ -33,7 +33,10 @@ const getFetch = (url: string): IGetFetch => {
     if (res.status === 204) return null;
     if (res.status === 401) {
       cookiestore.removeAll();
-      navigate('/account/login?message=Session%20ID%20has%20been%20expired');
+      setTimeout(() => {
+        const message = 'Session ID has been expired or is not valid.';
+        navigate(`/account/login?message=${encodeURIComponent(message)}`);
+      }, 750);
       return null;
     }
     const json: Promise<any> = await res.json();

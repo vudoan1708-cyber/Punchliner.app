@@ -7,6 +7,7 @@
   import Icon from '../components//Icon/Icon.svelte';
   
   import TextEditor from "../lib/TextEditor.svelte";
+  import InfoSection from "../lib/InfoSection.svelte";
   import ControlsUI from "../lib/ControlsUI/ControlsUI.svelte";
 
   // Type
@@ -29,14 +30,17 @@
     {
       lookUpName: 'display',
       title: 'Click to hide\nShortcut combination is CTRL + B',
+      disabled: true,
     },
     {
       lookUpName: 'save',
       title: 'Click to save document\nShortcut combination is CTRL + S',
+      disabled: false,
     },
     {
-      lookUpName: 'add',
+      lookUpName: 'new',
       title: 'Click to add a new document\nShortcut combination is CTRL + 0',
+      disabled: false,
     },
   ];
   let controlClicked: boolean = false;
@@ -45,6 +49,7 @@
 
   const modifyControls = (lookUpName: string, changedControl: Control): void => {
     const idx: number = controls.findIndex((control) => control.lookUpName === lookUpName);
+    if (idx < 0) return;
     controls = swapArrayItems(controls, idx, changedControl);
   };
 
@@ -100,10 +105,12 @@
       if (!!isDuplicate) modifyControls('display', {
         lookUpName: 'hide',
         title: 'Click to show',
+        disabled: true,
       });
       else modifyControls('hide', {
         lookUpName: 'display',
         title: 'Click to hide\nShortcut combination is CTRL + B',
+        disabled: true,
       });
       return;
     }
@@ -111,6 +118,7 @@
     modifyControls('hide', {
       lookUpName: 'display',
       title: 'Click to hide\nShortcut combination is CTRL + B',
+      disabled: true,
     });
   };
 
@@ -118,10 +126,12 @@
     if (!!isDuplicate) displayContent('hide', {
       lookUpName: 'display',
       title: 'Click to hide\nShortcut combination is CTRL + B',
+      disabled: true,
     }, text);
     else hideContent('display', {
       lookUpName: 'hide',
       title: 'Click to show',
+      disabled: true,
     });
   };
 
@@ -272,6 +282,10 @@
     }
   };
 
+  const expandMenuSection = () => {
+
+  };
+
   window.addEventListener('beforeunload', (e) => {
     if (!newContentAdded) return;
     e.returnValue = 'There is some content that has not been saved. Are you sure you want to leave?';
@@ -285,7 +299,7 @@
     // Document Overview API (get document ID(s))
     const allDocs: Array<any> = await getDocuments();
 
-    // If not document retrieved, Document Create API here
+    // If no document retrieved, Document Create API here
     if (!!allDocs && allDocs.length === 0) {
       setTimeout(() => {
         createDocument();
@@ -330,13 +344,18 @@
       on:hide-click={() => { displayContent('hide', {
         lookUpName: 'display',
         title: 'Click to hide\nShortcut combination is CTRL + B',
+        disabled: true,
       }, tempSelectedText); }}
       on:display-click={() => { hideContent('display', {
         lookUpName: 'hide',
         title: 'Click to show',
+        disabled: true,
       }); }}
       on:save-click={promptSaveDocument}
-      on:add-click={createDocument} />
+      on:add-click={createDocument}
+      on:hamburger-click={expandMenuSection} />
+
+    <InfoSection />
   </section>
 
   {#if loading}
@@ -391,6 +410,8 @@
   #controls_wrap {
     position: relative;
     width: 100%;
+    display: flex;
+    justify-content: space-between;
   }
 
   form.saveDocs {

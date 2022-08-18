@@ -32,6 +32,7 @@
   const goToEditor = async (): Promise<void> => {
     let bearer: string|null = null;
     let userId: string|null = null;
+    let userEmail: string|null = null;
 
     if (disabled || password.length < passwordRef.minLength) return;
 
@@ -49,8 +50,10 @@
 
       ({ bearer } = response.data);
       userId = response.data.user._id;
+      userEmail = response.data.user.email;
       cookiestore.set({ name: 'session', value: bearer });
       cookiestore.set({ name: 'userId', value: userId });
+      cookiestore.set({ name: 'userEmail', value: userEmail });
 
       navigate('/editor', { replace: false });
     } finally {

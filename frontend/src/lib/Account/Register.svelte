@@ -38,7 +38,8 @@
       ({ bearer } = response.data);
       cookiestore.set({ name: 'session', value: bearer });
 
-      navigate('/account/login?message=You%20have%20just%20created%20a%20new%20account\nPlease%20login%20using%20the%20created%20credentials', { replace: false });
+      const message = 'Congratulations! You have just created a new account. \nPlease login using the newly created credentials';
+      navigate(`/account/login?message=${encodeURIComponent(message)}`, { replace: false });
     } catch (err) {
       console.error(err);
     } finally {
