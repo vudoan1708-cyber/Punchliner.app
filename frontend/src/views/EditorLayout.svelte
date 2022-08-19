@@ -7,7 +7,8 @@
   import Icon from '../components//Icon/Icon.svelte';
   
   import TextEditor from "../lib/TextEditor.svelte";
-  import InfoSection from "../lib/InfoSection.svelte";
+  import UserInfo from "../lib/UserInfo.svelte";
+  import DocumentInfo from '../lib/DocumentInfo.svelte';
   import ControlsUI from "../lib/ControlsUI/ControlsUI.svelte";
 
   // Type
@@ -282,8 +283,9 @@
     }
   };
 
-  const expandMenuSection = () => {
-
+  let menuShrinking = false;
+  const expandMenuSection = ({ detail }) => {
+    menuShrinking = detail;
   };
 
   window.addEventListener('beforeunload', (e) => {
@@ -292,12 +294,13 @@
   });
 
   // Life Cycles
+  let allDocs: Array<any> | void = null;
   onMount(async () => {
     // Make 2 or 3 API calls here
     // Shareable Document check
 
     // Document Overview API (get document ID(s))
-    const allDocs: Array<any> = await getDocuments();
+    allDocs = await getDocuments();
 
     // If no document retrieved, Document Create API here
     if (!!allDocs && allDocs.length === 0) {
@@ -323,6 +326,7 @@
     <TextEditor
       {className}
       {selectedText}
+      {menuShrinking}
       content={loadedDocument.content}
       bind:isContentLoaded={loadedDocument.loaded}
       bind:newContentAdded
@@ -355,7 +359,11 @@
       on:add-click={createDocument}
       on:hamburger-click={expandMenuSection} />
 
-    <InfoSection />
+    <UserInfo />
+  </section>
+
+  <section id="documentsInfo" hidden={!menuShrinking}>
+    <DocumentInfo {allDocs} />
   </section>
 
   {#if loading}

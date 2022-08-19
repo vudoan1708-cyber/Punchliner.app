@@ -10,6 +10,7 @@
 
   export let className: string = '';
   export let selectedText: SelectedText[] = [];
+  export let menuShrinking: boolean = false;
   export let content: string = '';
   export let isContentLoaded: boolean = false;
   export let newContentAdded: boolean = false;
@@ -19,6 +20,7 @@
   const dispatch = createEventDispatcher();
 
   let editorArea: HTMLTextAreaElement | null = null;
+  let editorWrapper: HTMLFormElement | null = null;
   let previewArea: HTMLDivElement | null = null;
 
   let recentSelection: RecentSelection | null = null;
@@ -331,10 +333,17 @@
     displayNewContent();
     console.log('THERE');
   };
+  $: if (!!editorWrapper) {
+    if (!!menuShrinking) {
+      editorWrapper.style.height = '330px';
+    } else {
+      editorWrapper.style.height = '';
+    }
+  }
 </script>
 
 <!-- <template> -->
-  <form action="#" id="textEditor">
+  <form action="#" id="textEditor" bind:this={editorWrapper}>
     <div id="editorWrapper">
       <textarea
         id="editor"

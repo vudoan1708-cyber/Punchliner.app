@@ -3,6 +3,10 @@
 
   import { cookiestore } from '../helper/storage';
 
+  const logOut = () => {
+    cookiestore.removeAll();
+  };
+
   let userEmail: string | void = '';
   onMount(() => {
     userEmail = cookiestore.get('userEmail');
@@ -12,7 +16,7 @@
 <!-- <template> -->
   <div class="infoSection">
     <div class="userEmail">{userEmail}</div> |
-    <u class="logout" title="Click to log out"><i>Logout</i></u>
+    <u class="logout" title="Click to log out" on:click={logOut}><i>Logout</i></u>
   </div>
 <!-- </template> -->
 
