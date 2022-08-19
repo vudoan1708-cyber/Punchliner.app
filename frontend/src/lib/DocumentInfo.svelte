@@ -7,11 +7,26 @@
   const viewSharedDocument = (doc) => {
     console.log(`Navigate to the share URL with this document ${JSON.stringify(doc, null, 2)}`);
   };
+  const getDateDiff = (today: number, date: number): string => {
+    const daysInMonth = (month: number, year: number): number => new Date(year, month, 0).getDate();
+    const pluralise = (num: number, str: string): string => {
+      if (num > 1) return `${str}s`;
+      return str;
+    }
+
+    const diffInDays = Math.floor((today - date) / (1000 * 3600 * 24));
+    const numOfDays = daysInMonth(new Date().getMonth(), new Date().getFullYear());
+    if (diffInDays > numOfDays) {
+      const remainder = diffInDays % numOfDays;
+      return pluralise(remainder, `${remainder} month`);
+    }
+    return pluralise(diffInDays, `${diffInDays} day`);
+  };
 </script>
 
 <!-- <template> -->
   {#if !!allDocs && allDocs.length > 0}
-    <table class="docsInfoWrapper">
+    <table class="docsInfoWrapper hover">
       <thead>
         <th class="left_aligned">Recently modified</th>
         <th class="left_aligned">Modified</th>
@@ -22,7 +37,9 @@
         {#each allDocs as doc}
           <tr class="row">
             <td class="col left_aligned">{doc.title}</td>
-            <td class="col left_aligned">{doc.updated_at}</td>
+            <td class="col left_aligned">
+              {getDateDiff(new Date().getTime(), new Date(doc.updated_at).getTime())}
+            </td>
             <td class="col centred">{doc.words}</td>
             <td class="col centred" style="width: 75px;">
               <div class="icons">

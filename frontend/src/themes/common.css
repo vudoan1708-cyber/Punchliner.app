@@ -23,3 +23,16 @@ input[type="password"]::focus {
 a {
   color: var(--color-primary);
 }
+
+table {
+  border-collapse: collapse;
+}
+
+table.hover tr {
+  cursor: pointer;
+}
+
+table.hover tr:hover td {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
