@@ -30,7 +30,7 @@
         title={control.title}
         disabled={noTextSelected && control.disabled}
         on:click={() => { onIconClicked(`${control.lookUpName}-click`); }}>
-        <Icon name={control.lookUpName} style="color: var(--color-primary);" />
+        <Icon name={control.lookUpName} />
       </span>
     {/each}
     <div
@@ -40,7 +40,7 @@
         menuShrinking = !menuShrinking;
         onIconClicked('hamburger-click', menuShrinking);
       }}>
-      <Icon name="hamburger" style="color: var(--color-primary);" />
+      <Icon name="hamburger" />
     </div>
   </div>
 </div>

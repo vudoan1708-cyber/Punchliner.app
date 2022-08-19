@@ -20,7 +20,9 @@
   let password: string|null = null;
 
   let loading: boolean = false;
-  const error: Error = {
+
+  type Message = Error;
+  const message: Message = {
     message: null,
     detail: null,  
   };
@@ -43,8 +45,8 @@
         .addRequestBody({ email, password })
         .POST();
       if (!response.success) {
-        error.message = response.message;
-        error.detail = response.detail;
+        message.message = response.message;
+        message.detail = response.detail;
         return;
       }
 
@@ -65,7 +67,7 @@
   onMount(() => {
     const { search } = window.location;
     if (!search.includes('message')) return;
-    error.message = decodeURI(search.split('=')[1]);
+    message.message = decodeURI(search.split('=')[1]);
   });
 
   $: disabled = !email || !password;
@@ -101,13 +103,13 @@
     {/if}
   </form>
 
-  {#if !!error.message || !!error.detail}
+  {#if !!message.message || !!message.detail}
     <Modal
-      title="Error"
-      style="min-height: 5em;"
+      title="Message"
+      style={message.message.length < 61 ? 'min-height: 5em;' : 'min-height: 6em;'}
       backgroundClose
-      on:close={() => { error.message = null; error.detail = null; }}>
-      <div>{error.message}</div>
+      on:close={() => { message.message = null; message.detail = null; }}>
+      <div>{message.message}</div>
     </Modal>
   {/if}
 <!-- </template> -->

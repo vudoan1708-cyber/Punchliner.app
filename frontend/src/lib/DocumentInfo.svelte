@@ -1,37 +1,66 @@
 <script lang="ts">
+  import Icon from '../components/Icon/Icon.svelte';
+
   export let allDocs: Array<any> | void = null;
 
-  $: console.log(allDocs);
+  const toggleShareability = (shareable: boolean): boolean => !shareable;
+  const viewSharedDocument = (doc) => {
+    console.log(`Navigate to the share URL with this document ${JSON.stringify(doc, null, 2)}`);
+  };
 </script>
 
 <!-- <template> -->
-  {#if !!allDocs}
+  {#if !!allDocs && allDocs.length > 0}
     <table class="docsInfoWrapper">
       <thead>
-        <th>Recently modified</th>
-        <th>Modified</th>
-        <th>Word counts</th>
-        <th>Shared</th>
+        <th class="left_aligned">Recently modified</th>
+        <th class="left_aligned">Modified</th>
+        <th class="centred">Word counts</th>
+        <th class="centred" />
       </thead>
       <tbody>
         {#each allDocs as doc}
           <tr class="row">
-            <td class="col">
-    
+            <td class="col left_aligned">{doc.title}</td>
+            <td class="col left_aligned">{doc.updated_at}</td>
+            <td class="col centred">{doc.words}</td>
+            <td class="col centred" style="width: 75px;">
+              <div class="icons">
+                <span
+                  title={doc.isShared ? 'This document is shared' : 'This document is not shared'}
+                  style="cursor: pointer;"
+                  on:click={() => { doc.isShared = toggleShareability(doc.isShared); }}>
+                  <Icon name={doc.isShared ? 'unlock' : 'lock'} />
+                </span>
+                {#if doc.isShared}
+                  <span
+                    title="Click to view this document"
+                    style="cursor: pointer;"
+                    on:click={() => { viewSharedDocument(doc); }}>
+                    <Icon name="view" />
+                  </span>
+                {/if}
+              </div>
             </td>
           </tr>
         {/each}
       </tbody>
     </table>
   {:else}
-    <div>No saved documents to display</div>
+    <div class="noDoc">No saved documents to display</div>
   {/if}
 <!-- </template> -->
 
 <style>
-  .docsInfoWrapper {
+  .docsInfoWrapper,
+  .noDoc {
     margin-top: var(--margin);
     font-size: calc(var(--type-body-size) - var(--border-width));
+  }
+
+  .docsInfoWrapper {
+    position: relative;
+    width: 100%;
   }
 
   .docsInfoWrapper thead {
@@ -40,5 +69,23 @@
 
   .docsInfoWrapper tbody {
     opacity: .5;
+  }
+
+  .left_aligned {
+    text-align: left;
+  }
+  .centred {
+    text-align: center;
+  }
+
+  .noDoc {
+    opacity: .75;
+  }
+
+  .icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--margin) / 2);
   }
 </style>

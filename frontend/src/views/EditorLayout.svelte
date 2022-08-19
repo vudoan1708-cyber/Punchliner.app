@@ -321,8 +321,8 @@
   });
 </script>
 
-<main>
-  <section id="wrap">
+<section id="layout_wrap">
+  <section id="editor_wrap">
     <TextEditor
       {className}
       {selectedText}
@@ -397,17 +397,17 @@
       </form>
     </Modal>
   {/if}
-</main>
+</section>
 
 <style>
-  main {
+  section#layout_wrap {
     position: relative;
     margin: 0 auto 0 auto;
     padding: 50px 0 0 0;
     width: 800px;
   }
 
-  #wrap {
+  #editor_wrap {
     position: relative;
     width: 100%;
     padding: var(--padding) 0;
