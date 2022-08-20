@@ -199,6 +199,7 @@
   };
 
   // Document Creation
+  let textEditorDisabled: boolean = false;
   const createDocument = async () => {
     loading = true;
 
@@ -215,14 +216,17 @@
       if (!res.success) {
         error.message = res.message;
         error.detail = res.detail;
+        textEditorDisabled = true;
         return;
       }
 
       documentId = res.data.document._id;
       loadedDocument.loaded = true;
+      textEditorDisabled = false;
     } catch (ex) {
       error.message = ex.message;
       error.detail = ex.detail;
+      textEditorDisabled = true;
     } finally {
       loading = false;
       savePrompt = true;
@@ -267,7 +271,6 @@
   };
 
   // Document Query
-  let textEditorDisabled: boolean = false;
   const getDocument = async (id): Promise<any> | null => {
     try {
       const res = await DocumentQueryBuilder().addDocumentId(id).GET(sessionId);
@@ -291,6 +294,13 @@
   let menuShrinking: boolean = false;
   const expandMenuSection = ({ detail }) => {
     menuShrinking = detail;
+  };
+
+  const onWindowKeyUp = (e) => {
+    if ((e.keyCode === 0 || e.code === 'Digit0' || e.code === 'Numpad0') && !!e.ctrlKey) {
+      e.preventDefault();
+      createDocument();
+    }
   };
 
   window.addEventListener('beforeunload', (e) => {
@@ -330,6 +340,7 @@
   });
 </script>
 
+<svelte:window on:keyup={onWindowKeyUp} />
 <section id="layout_wrap">
   <section id="editor_wrap">
     <TextEditor
@@ -366,7 +377,7 @@
         disabled: true,
       }); }}
       on:save-click={promptSaveDocument}
-      on:add-click={createDocument}
+      on:new-click={createDocument}
       on:hamburger-click={expandMenuSection} />
 
     <UserInfo />

@@ -50,7 +50,7 @@
                 {getDateDiff(new Date().getTime(), new Date(doc.updated_at).getTime())}
                 <ToolTip
                   text={`
-                    <div style="display: flex; flex-direction: column; gap: var(--margin);
+                    <div style="display: flex; flex-direction: column; gap: calc(var(--margin) / 2);
                       font-size: calc(var(--type-body-size) - var(--border-width));">
                       <span>
                         <strong>Modified</strong> ${new Date(doc.updated_at).toLocaleString(window.navigator.language)}
@@ -60,7 +60,7 @@
                       </span>
                     </div>
                   `}
-                  options={{ allowHTML : true, animation : 'scale', placement: 'left-end', maxWidth: 750 }} />
+                  options={{ allowHTML : true, animation : 'scale', placement: 'left-end' }} />
               </span>
             </td>
             <td class="col centred">{doc.words}</td>
