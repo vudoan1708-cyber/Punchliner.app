@@ -1,18 +1,15 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
+
   import Icon from '../components/Icon/Icon.svelte';
 
   export let allDocs: Array<any> | void = null;
 
-  const toggleShareability = (shareable: boolean): boolean => !shareable;
-  const viewSharedDocument = (doc) => {
-    console.log(`Navigate to the share URL with this document ${JSON.stringify(doc, null, 2)}`);
-  };
+  const dispatch = createEventDispatcher();
+
   const getDateDiff = (today: number, date: number): string => {
     const daysInMonth = (month: number, year: number): number => new Date(year, month, 0).getDate();
-    const pluralise = (num: number, str: string): string => {
-      if (num > 1) return `${str}s`;
-      return str;
-    }
+    const pluralise = (num: number, str: string): string => num > 1 ? `${str}s` : str;
 
     const diffInDays = Math.floor((today - date) / (1000 * 3600 * 24));
     const numOfDays = daysInMonth(new Date().getMonth(), new Date().getFullYear());
@@ -21,6 +18,15 @@
       return pluralise(remainder, `${remainder} month`);
     }
     return pluralise(diffInDays, `${diffInDays} day`);
+  };
+
+  // Event Handlers
+  const toggleShareability = (shareable: boolean): boolean => !shareable;
+  const viewSharedDocument = (doc) => {
+    console.log(`Navigate to the share URL with this document ${JSON.stringify(doc, null, 2)}`);
+  };
+  const retrieveDocument = (doc) => {
+    dispatch('get-document', doc);
   };
 </script>
 
@@ -35,7 +41,7 @@
       </thead>
       <tbody>
         {#each allDocs as doc}
-          <tr class="row">
+          <tr class="row" on:click={() => { retrieveDocument(doc); }}>
             <td class="col left_aligned">{doc.title}</td>
             <td class="col left_aligned">
               {getDateDiff(new Date().getTime(), new Date(doc.updated_at).getTime())}

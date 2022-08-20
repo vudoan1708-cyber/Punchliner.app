@@ -11,6 +11,7 @@
   export let className: string = '';
   export let selectedText: SelectedText[] = [];
   export let menuShrinking: boolean = false;
+  export let disabled: boolean = false;
   export let content: string = '';
   export let isContentLoaded: boolean = false;
   export let newContentAdded: boolean = false;
@@ -349,6 +350,8 @@
         id="editor"
         wrap="soft"
         placeholder="Type here..."
+        class:disabled
+        {disabled}
         bind:this={editorArea}
         on:input={onTextAreaChanged}
         on:scroll={onTextAreaScrolled}
@@ -369,6 +372,7 @@
     margin: 0;
     padding: 0;
     height: 600px;
+    transition: height .2s;
   }
 
   #editorWrapper {
@@ -379,6 +383,10 @@
     background-color: var(--color-secondary);
     overflow: visible;
     font-size: 12pt;
+  }
+
+  #editorWrapper textarea.disabled {
+    cursor: not-allowed;
   }
 
   #editor,

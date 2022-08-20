@@ -267,23 +267,28 @@
   };
 
   // Document Query
+  let textEditorDisabled: boolean = false;
   const getDocument = async (id): Promise<any> | null => {
     try {
       const res = await DocumentQueryBuilder().addDocumentId(id).GET(sessionId);
       if (!res.success) {
         error.message = res.message;
         error.detail = res.detail;
+        textEditorDisabled = true;
         return null;
       }
+
+      textEditorDisabled = false;
       return res.data.document;
     } catch (ex) {
       error.message = ex.message;
       error.detail = ex.detail;
+      textEditorDisabled = true;
       return null;
     }
   };
 
-  let menuShrinking = false;
+  let menuShrinking: boolean = false;
   const expandMenuSection = ({ detail }) => {
     menuShrinking = detail;
   };
@@ -293,8 +298,16 @@
     e.returnValue = 'There is some content that has not been saved. Are you sure you want to leave?';
   });
 
-  // Life Cycles
   let allDocs: Array<any> | void = null;
+  const toLoadNewDocument = async () => {
+    const firstDoc = await getDocument(allDocs[0]._id);
+    if (!firstDoc) return;
+
+    loadedDocument.loaded = true;
+    loadedDocument.content = firstDoc.content;
+  };
+
+  // Life Cycles
   onMount(async () => {
     // Make 2 or 3 API calls here
     // Shareable Document check
@@ -312,11 +325,7 @@
 
     // Document Query (1st if not last editted)
     if (!!allDocs && allDocs.length > 0) {
-      const firstDoc = await getDocument(allDocs[0]._id);
-      if (!firstDoc) return;
-
-      loadedDocument.loaded = true;
-      loadedDocument.content = firstDoc.content;
+      toLoadNewDocument();
     }
   });
 </script>
@@ -327,6 +336,7 @@
       {className}
       {selectedText}
       {menuShrinking}
+      disabled={textEditorDisabled}
       content={loadedDocument.content}
       bind:isContentLoaded={loadedDocument.loaded}
       bind:newContentAdded
@@ -362,8 +372,8 @@
     <UserInfo />
   </section>
 
-  <section id="documentsInfo" hidden={!menuShrinking}>
-    <DocumentInfo {allDocs} />
+  <section id="documentsInfo" class:hidden={menuShrinking}>
+    <DocumentInfo {allDocs} on:get-document={toLoadNewDocument} />
   </section>
 
   {#if loading}
@@ -420,6 +430,16 @@
     width: 100%;
     display: flex;
     justify-content: space-between;
+  }
+
+  #documentsInfo {
+    display: none;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  #documentsInfo.hidden {
+    display: block;
+    opacity: 1;
   }
 
   form.saveDocs {
