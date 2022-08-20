@@ -6,7 +6,7 @@
 	import EditorLayout from './views/EditorLayout.svelte';
 	import NotFound from './views/NotFound.svelte';
 
-  const fallbackRoute = (pathname, query) => {
+  const fallbackRoute = (pathname) => {
     if (pathname.includes('/account') && !pathname.includes('register')) {
       navigate('/account/login');
       return;
@@ -15,9 +15,9 @@
 
   const createAnnouncement = (route, location) => {
     const viewName = route.meta.name;
-		const { pathname, search } = location;
+		const { pathname } = location;
 
-    fallbackRoute(pathname, search);
+    fallbackRoute(pathname);
     return `Navigated to the ${viewName} view at ${pathname}`;
   };
 </script>
@@ -50,7 +50,9 @@
   main {
     position: relative;
     height: 100vh;
-    margin: 0 auto 0 auto;
-    max-width: 900px;
+    display: flex;
+    justify-content: center;
+    /* margin: 0 auto 0 auto;
+    max-width: 900px; */
   }
 </style>
