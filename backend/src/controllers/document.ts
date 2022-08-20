@@ -144,7 +144,7 @@ const getDocumentById: RequestHandlerWithType<
       throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
     }
 
-    const isOwner = req.user._id === documentDetail._id.toString();
+    const isOwner = req.user._id === documentDetail.ownerId.toString();
 
     if (!documentDetail.isShared && !isOwner) {
       throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
