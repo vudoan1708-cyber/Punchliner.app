@@ -299,8 +299,8 @@
   });
 
   let allDocs: Array<any> | void = null;
-  const toLoadNewDocument = async () => {
-    const firstDoc = await getDocument(allDocs[0]._id);
+  const toLoadNewDocument = async (docId: string) => {
+    const firstDoc = await getDocument(docId);
     if (!firstDoc) return;
 
     loadedDocument.loaded = true;
@@ -325,7 +325,7 @@
 
     // Document Query (1st if not last editted)
     if (!!allDocs && allDocs.length > 0) {
-      toLoadNewDocument();
+      toLoadNewDocument(allDocs[0]._id);
     }
   });
 </script>
@@ -373,7 +373,7 @@
   </section>
 
   <section id="documentsInfo" class:hidden={menuShrinking}>
-    <DocumentInfo {allDocs} on:get-document={toLoadNewDocument} />
+    <DocumentInfo {allDocs} on:get-document={({ detail }) => { toLoadNewDocument(detail._id); }} />
   </section>
 
   {#if loading}

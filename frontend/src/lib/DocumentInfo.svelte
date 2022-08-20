@@ -1,6 +1,8 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import 'tippy.js/animations/scale.css';
 
+  import ToolTip from '../components/ToolTip.svelte';
   import Icon from '../components/Icon/Icon.svelte';
 
   export let allDocs: Array<any> | void = null;
@@ -42,9 +44,24 @@
       <tbody>
         {#each allDocs as doc}
           <tr class="row" on:click={() => { retrieveDocument(doc); }}>
-            <td class="col left_aligned">{doc.title}</td>
+            <td class="col left_aligned" style="width: 500px;">{doc.title}</td>
             <td class="col left_aligned">
-              {getDateDiff(new Date().getTime(), new Date(doc.updated_at).getTime())}
+              <span>
+                {getDateDiff(new Date().getTime(), new Date(doc.updated_at).getTime())}
+                <ToolTip
+                  text={`
+                    <div style="display: flex; flex-direction: column; gap: var(--margin);
+                      font-size: calc(var(--type-body-size) - var(--border-width));">
+                      <span>
+                        <strong>Modified</strong> ${new Date(doc.updated_at).toLocaleString(window.navigator.language)}
+                      </span>
+                      <span>
+                        <strong>Created</strong> ${new Date(doc.created_at).toLocaleString(window.navigator.language)}
+                      </span>
+                    </div>
+                  `}
+                  options={{ allowHTML : true, animation : 'scale', placement: 'left-end', maxWidth: 750 }} />
+              </span>
             </td>
             <td class="col centred">{doc.words}</td>
             <td class="col centred" style="width: 75px;">
@@ -52,14 +69,14 @@
                 <span
                   title={doc.isShared ? 'This document is shared' : 'This document is not shared'}
                   style="cursor: pointer;"
-                  on:click={() => { doc.isShared = toggleShareability(doc.isShared); }}>
+                  on:click|stopPropagation={() => { doc.isShared = toggleShareability(doc.isShared); }}>
                   <Icon name={doc.isShared ? 'unlock' : 'lock'} />
                 </span>
                 {#if doc.isShared}
                   <span
                     title="Click to view this document"
                     style="cursor: pointer;"
-                    on:click={() => { viewSharedDocument(doc); }}>
+                    on:click|stopPropagation={() => { viewSharedDocument(doc); }}>
                     <Icon name="view" />
                   </span>
                 {/if}
