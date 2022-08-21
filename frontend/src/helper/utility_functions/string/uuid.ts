@@ -6,5 +6,5 @@
 */
 export default (character: string | void = null): string => {
   if (!character) return new Date().getTime().toString(32).toUpperCase();
-  return character.split(' ').join('_').toLowerCase();
+  return character.split('+').join('-');
 };

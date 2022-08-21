@@ -44,6 +44,7 @@
     flex-direction: column;
     align-items: center;
     margin-top: calc(var(--margin) * 3);
+    max-width: 900px;
   }
 
   div.features {
