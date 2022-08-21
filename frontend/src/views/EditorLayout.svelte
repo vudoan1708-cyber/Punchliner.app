@@ -7,18 +7,25 @@
   import Icon from '../components//Icon/Icon.svelte';
   
   import TextEditor from "../lib/TextEditor.svelte";
+  import UserInfo from "../lib/UserInfo.svelte";
+  import DocumentInfo from '../lib/DocumentInfo.svelte';
   import ControlsUI from "../lib/ControlsUI/ControlsUI.svelte";
 
   // Type
   import type { Control } from '../lib/ControlsUI/ControlsUI';
   import type { SelectedText } from '../types/SelectedText';
   import type { Error } from '../types/Error';
+  import type { Document } from '../types/Document';
 
   // API
-  import { DocumentCreateBuilder, DocumentSaveBuilder } from '../API/DAPI';
+  import {
+    DocumentCreateBuilder, DocumentSaveBuilder, DocumentOverviewBuilder, DocumentQueryBuilder,
+  } from '../API/DAPI';
 
   // Utilities
-  import { uuid, appendingArrayWithDuplicateChecker, swapArrayItems } from '../helper/utilities';
+  import {
+    uuid, parseTextContent, appendingArrayWithDuplicateChecker, swapArrayItems,
+  } from '../helper/utilities';
   import { cookiestore } from '../helper/storage';
 
   let selectedText: SelectedText[] = [];
@@ -27,26 +34,30 @@
     {
       lookUpName: 'display',
       title: 'Click to hide\nShortcut combination is CTRL + B',
+      disabled: true,
     },
     {
       lookUpName: 'save',
       title: 'Click to save document\nShortcut combination is CTRL + S',
+      disabled: false,
     },
     {
-      lookUpName: 'add',
+      lookUpName: 'new',
       title: 'Click to add a new document\nShortcut combination is CTRL + 0',
+      disabled: false,
     },
   ];
   let controlClicked: boolean = false;
 
-  const orderByStartingPosition = (array: SelectedText[]) => array.sort((a, b) => a.start - b.start);
+  const orderByStartingPosition = (array: SelectedText[]): SelectedText[] => array.sort((a, b) => a.start - b.start);
 
   const modifyControls = (lookUpName: string, changedControl: Control): void => {
     const idx: number = controls.findIndex((control) => control.lookUpName === lookUpName);
+    if (idx < 0) return;
     controls = swapArrayItems(controls, idx, changedControl);
   };
 
-  let className: string = '';
+  let className: string = 'hide';
   const hideContent = (lookUpName: string, changedControl: Control): void => {
     modifyControls(lookUpName, changedControl);
 
@@ -98,10 +109,12 @@
       if (!!isDuplicate) modifyControls('display', {
         lookUpName: 'hide',
         title: 'Click to show',
+        disabled: true,
       });
       else modifyControls('hide', {
         lookUpName: 'display',
         title: 'Click to hide\nShortcut combination is CTRL + B',
+        disabled: true,
       });
       return;
     }
@@ -109,17 +122,20 @@
     modifyControls('hide', {
       lookUpName: 'display',
       title: 'Click to hide\nShortcut combination is CTRL + B',
+      disabled: true,
     });
   };
 
-  const triggerShortcutToHideText = (text: SelectedText) => {
+  const triggerShortcutToChangeTextVisibility = (text: SelectedText) => {
     if (!!isDuplicate) displayContent('hide', {
       lookUpName: 'display',
       title: 'Click to hide\nShortcut combination is CTRL + B',
+      disabled: true,
     }, text);
     else hideContent('display', {
       lookUpName: 'hide',
       title: 'Click to show',
+      disabled: true,
     });
   };
 
@@ -130,16 +146,14 @@
       [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, detail.id);
     });
     detail.wasHidden = isDuplicate;
-    triggerShortcutToHideText(detail);
+    triggerShortcutToChangeTextVisibility(detail);
   };
 
   const removeSelectedText = ({ detail }) => {
     selectedText = selectedText.filter((__, idx) => idx !== detail);
   };
 
-  const newDocumentTitle = (): string => {
-    return 'New Empty Document';
-  };
+  const newDocumentTitle = (): string => 'New Empty Document';
 
   let loading: boolean = false;
   let newContentAdded: boolean = false;
@@ -151,6 +165,7 @@
   };
   const sessionId = cookiestore.get('session');
 
+  // Document Save
   const saveDocument = async () => {
     loading = true;
     
@@ -160,6 +175,7 @@
         title: documentTitle,
         content: preview,
       };
+      console.log(documentId)
       const res = await DocumentSaveBuilder().addDocumentIdParam(documentId).addRequestBody(requestBody).PATCH(sessionId);
 
       if (!res.success) {
@@ -184,6 +200,8 @@
     content: '',
   };
 
+  // Document Creation
+  let textEditorDisabled: boolean = false;
   const createDocument = async () => {
     loading = true;
 
@@ -200,14 +218,17 @@
       if (!res.success) {
         error.message = res.message;
         error.detail = res.detail;
+        textEditorDisabled = true;
         return;
       }
 
       documentId = res.data.document._id;
       loadedDocument.loaded = true;
+      textEditorDisabled = false;
     } catch (ex) {
       error.message = ex.message;
       error.detail = ex.detail;
+      textEditorDisabled = true;
     } finally {
       loading = false;
       savePrompt = true;
@@ -234,37 +255,112 @@
     promptSaveDocument();
   };
 
+  // Document Overview
+  const getDocuments = async (): Promise<Document[]> | null => {
+    try {
+      const res = await DocumentOverviewBuilder().addDefaultParams().GET(sessionId);
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return null;
+      }
+      return res.data.documents;
+    } catch (ex) {
+      error.message = ex.message;
+      error.detail = ex.detail;
+      return null;
+    }
+  };
+
+  // Document Query
+  const getDocument = async (id): Promise<Document> | null => {
+    try {
+      const res = await DocumentQueryBuilder().addDocumentId(id).GET(sessionId);
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        textEditorDisabled = true;
+        return null;
+      }
+
+      documentId = res.data.document._id;
+      textEditorDisabled = false;
+      return res.data.document;
+    } catch (ex) {
+      error.message = ex.message;
+      error.detail = ex.detail;
+      textEditorDisabled = true;
+      return null;
+    }
+  };
+
+  let menuShrinking: boolean = false;
+  const expandMenuSection = ({ detail }) => {
+    menuShrinking = detail;
+  };
+
+  const onWindowKeyUp = (e) => {
+    if ((e.keyCode === 0 || e.code === 'Digit0' || e.code === 'Numpad0') && !!e.ctrlKey) {
+      e.preventDefault();
+      createDocument();
+    }
+  };
+
   window.addEventListener('beforeunload', (e) => {
     if (!newContentAdded) return;
     e.returnValue = 'There is some content that has not been saved. Are you sure you want to leave?';
   });
 
-  // Life Cycles
-  onMount(() => {
-    // Make 2 or 3 API calls here
-    // Document Overview API (get document ID(s))
+  let allDocs: Array<Document> | void = null;
+  const toLoadDocument = async (doc: Document) => {
+    const firstDoc = await getDocument(doc._id);
+    if (!firstDoc) return;
 
-    // If not document retrieved, Document Create API here
-    setTimeout(() => {
-      createDocument();
-    }, 1000);
+    selectedText = parseTextContent(doc.content);
+    documentTitle = doc.title;
+
+    loadedDocument.loaded = true;
+    loadedDocument.content = firstDoc.content;
+  };
+
+  // Life Cycles
+  onMount(async () => {
+    // Make 2 or 3 API calls here
+    // Shareable Document check
+
+    // Document Overview API (get document ID(s))
+    allDocs = await getDocuments();
+
+    // If no document retrieved, Document Create API here
+    if (!!allDocs && allDocs.length === 0) {
+      setTimeout(() => {
+        createDocument();
+      }, 1000);
+      return;
+    }
 
     // Document Query (1st if not last editted)
+    if (!!allDocs && allDocs.length > 0) {
+      toLoadDocument(allDocs[0]);
+    }
   });
 </script>
 
-<main>
-  <section id="wrap">
+<svelte:window on:keyup={onWindowKeyUp} />
+<section id="layout_wrap">
+  <section id="editor_wrap">
     <TextEditor
       {className}
       {selectedText}
+      {menuShrinking}
+      disabled={textEditorDisabled}
       content={loadedDocument.content}
       bind:isContentLoaded={loadedDocument.loaded}
       bind:newContentAdded
       bind:tempSelectedText
       bind:controlClicked
       on:select={textSelected}
-      on:ctrlB={() => { triggerShortcutToHideText(tempSelectedText); }}
+      on:ctrlB={() => { triggerShortcutToChangeTextVisibility(tempSelectedText); }}
       on:ctrlS={promptSaveDocument}
       on:ctrlZero={createDocument}
       on:text-click={triggerMouseClickToDisplayText}
@@ -279,13 +375,22 @@
       on:hide-click={() => { displayContent('hide', {
         lookUpName: 'display',
         title: 'Click to hide\nShortcut combination is CTRL + B',
+        disabled: true,
       }, tempSelectedText); }}
       on:display-click={() => { hideContent('display', {
         lookUpName: 'hide',
         title: 'Click to show',
+        disabled: true,
       }); }}
       on:save-click={promptSaveDocument}
-      on:add-click={createDocument} />
+      on:new-click={createDocument}
+      on:hamburger-click={expandMenuSection} />
+
+    <UserInfo />
+  </section>
+
+  <section id="documentsInfo" class:hidden={menuShrinking}>
+    <DocumentInfo {allDocs} on:get-document={({ detail }) => { toLoadDocument(detail); }} />
   </section>
 
   {#if loading}
@@ -319,17 +424,17 @@
       </form>
     </Modal>
   {/if}
-</main>
+</section>
 
 <style>
-  main {
+  section#layout_wrap {
     position: relative;
     margin: 0 auto 0 auto;
     padding: 50px 0 0 0;
     width: 800px;
   }
 
-  #wrap {
+  #editor_wrap {
     position: relative;
     width: 100%;
     padding: var(--padding) 0;
@@ -340,6 +445,18 @@
   #controls_wrap {
     position: relative;
     width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  #documentsInfo {
+    display: none;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  #documentsInfo.hidden {
+    display: block;
+    opacity: 1;
   }
 
   form.saveDocs {

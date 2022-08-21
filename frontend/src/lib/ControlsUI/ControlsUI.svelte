@@ -13,11 +13,12 @@
   const dispatch = createEventDispatcher();
 
   // Event Handler
-  const onIconClicked = (which: string) => {
-    dispatch(which);
+  let menuShrinking = false;
+  const onIconClicked = (which: string, props: any = null) => {
+    dispatch(which, props);
   };
 
-  $: disabled = !tempSelectedText;
+  $: noTextSelected = !tempSelectedText;
 </script>
 
 <!-- <template> -->
@@ -27,11 +28,20 @@
       <span
         class="icon_wrapper"
         title={control.title}
-        disabled={disabled && (control.lookUpName === 'display' || control.lookUpName === 'hide')}
+        disabled={noTextSelected && control.disabled}
         on:click={() => { onIconClicked(`${control.lookUpName}-click`); }}>
-        <Icon name={control.lookUpName} style="color: var(--color-primary);" />
+        <Icon name={control.lookUpName} />
       </span>
     {/each}
+    <div
+      class="hamburger"
+      title={!menuShrinking ? "Click to expand menu" : "Click to collapse menu"}
+      on:click={() => {
+        menuShrinking = !menuShrinking;
+        onIconClicked('hamburger-click', menuShrinking);
+      }}>
+      <Icon name="hamburger" />
+    </div>
   </div>
 </div>
 <!-- </template> -->
@@ -58,5 +68,11 @@
 
   #toolbar .icon_wrapper[disabled="true"] {
     pointer-events: none;
+  }
+
+  #toolbar .hamburger {
+    margin-top: var(--margin);
+    width: fit-content;
+    cursor: pointer;
   }
 </style>

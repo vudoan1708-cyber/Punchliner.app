@@ -2,8 +2,9 @@
  * simple string match to find the very first difference between two pieces of text
  * @param   {string}  str1  the 1st string
  * @param   {string}  str2  the 2nd string
- * 
- * @returns {any[]} An array of object which contains the entire string match so far and the 1st difference between the strings
+ *
+ * @returns {any[]} An array of object which contains the entire string match so far
+ * and the 1st difference between the strings
 */
 export default (str1: string, str2: string) => {
   const diff = new Map();
