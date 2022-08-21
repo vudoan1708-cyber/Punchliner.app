@@ -8,7 +8,7 @@
   // Utility
   import { deepClone, stringDiffOnce } from '../helper/utilities';
 
-  export let className: string = '';
+  export let className: string = 'hide';
   export let selectedText: SelectedText[] = [];
   export let menuShrinking: boolean = false;
   export let disabled: boolean = false;
@@ -62,13 +62,15 @@
   const appendClickEvent = () => {
     const newlyCreatedElements: NodeListOf<Element> = document.querySelectorAll('.hide');
 
+      const fn = (idx) => {
+        controlClicked = false;
+        dispatch('text-click', selectedText[idx]);
+      }
+
     if (!!newlyCreatedElements) {
       Array.from(newlyCreatedElements).forEach((element, idx) => {
-        element.removeEventListener('click', () => { console.warn('REMOVED') });
-        element.addEventListener('click', () => {
-          controlClicked = false;
-          dispatch('text-click', selectedText[idx]);
-        });
+        element.removeEventListener('click', fn);
+        element.addEventListener('click', () => { fn(idx); });
       });
     }
   };
@@ -147,78 +149,74 @@
 
     let strippedStringAtIndx: number = -1;
     let startOfInterval: SelectedText = null;
-    try {
-      for (let i = 0; i < selectedText.length; i += 1) {
-        const selection: SelectedText = selectedText[i];
-        const prevSelectionUpdatedEndPosition: number = !!selectedText[i - 1] ? selectedText[i - 1].end : 0;
-        const curSelectionStartPosition: number = i === 0 ? 0 : selection.start;
-        let nextSelectionStartPosition: number = !!selectedText[i + 1]
-          ? selectedText[i + 1].start
-          : editorArea.value.length;
+    for (let i = 0; i < selectedText.length; i += 1) {
+      const selection: SelectedText = selectedText[i];
+      const prevSelectionUpdatedEndPosition: number = !!selectedText[i - 1] ? selectedText[i - 1].end : 0;
+      const curSelectionStartPosition: number = i === 0 ? 0 : selection.start;
+      let nextSelectionStartPosition: number = !!selectedText[i + 1]
+        ? selectedText[i + 1].start
+        : editorArea.value.length;
 
-        const editorActualCaretPosition = findCaretPosition(numOfModifiedCharacters, eventType);
-        if (editorActualCaretPosition <= selection.start) {
-          // If deleting when there is only one selected piece of string || when there is no deleting at all
-          if ((eventType.indexOf('deleteContent') < 0
-            || eventType.indexOf('deleteContent') > -1 && selectedText.length === 1)) {
-              if (!caretOnEitherEndOfText(eventType, editorActualCaretPosition, numOfModifiedCharacters, selection)) {
-                selection.start += numOfModifiedCharacters;
-              }
-            }
-          // If caret is placed at the start or end of text, keep the text starting pos still
-          // whilst moving the other ones behind, if any
-          else if (!!caretOnEitherEndOfText(eventType, editorActualCaretPosition, numOfModifiedCharacters, selection)) {
-            if (i < selectedText.length - 1) {
-              selectedText[i + 1].start += numOfModifiedCharacters;
-              nextSelectionStartPosition = selectedText[i + 1].start;
-            }
-          }
-          else if (eventType.indexOf('deleteContent') > -1) {
-            if (i < selectedText.length - 1) {
+      const editorActualCaretPosition = findCaretPosition(numOfModifiedCharacters, eventType);
+      if (editorActualCaretPosition <= selection.start) {
+        // If deleting when there is only one selected piece of string || when there is no deleting at all
+        if ((eventType.indexOf('deleteContent') < 0
+          || eventType.indexOf('deleteContent') > -1 && selectedText.length === 1)) {
+            if (!caretOnEitherEndOfText(eventType, editorActualCaretPosition, numOfModifiedCharacters, selection)) {
               selection.start += numOfModifiedCharacters;
-              selectedText[i + 1].start += numOfModifiedCharacters;
-              nextSelectionStartPosition = selectedText[i + 1].start;
             }
           }
-          selection.end += numOfModifiedCharacters;
-        } else if (!!caretInBetweenSelectedTexts(
-            eventType,
-            editorActualCaretPosition,
-            numOfModifiedCharacters,
-            !startOfInterval ? selection : startOfInterval, selectedText[i + 1]
-          )) {
-          if (!caretOnEitherEndOfText(eventType, editorActualCaretPosition, numOfModifiedCharacters, selectedText[i + 1])) {
-            // This is to only re-assign value to this variable ONCE, to compare it with the rest blocks of selection
-            if (!startOfInterval) startOfInterval = deepClone(selection);
+        // If caret is placed at the start or end of text, keep the text starting pos still
+        // whilst moving the other ones behind, if any
+        else if (!!caretOnEitherEndOfText(eventType, editorActualCaretPosition, numOfModifiedCharacters, selection)) {
+          if (i < selectedText.length - 1) {
             selectedText[i + 1].start += numOfModifiedCharacters;
             nextSelectionStartPosition = selectedText[i + 1].start;
           }
-        } else if (!!caretInBetweenASelectedText(eventType, editorActualCaretPosition, selection)) {
-          selection.end += numOfModifiedCharacters;
         }
-
-        selection.text = modifySelectedStringOnTextDeletion(
-          editorActualCaretPosition, numOfModifiedCharacters, selection, eventType,
-        );
-
-        // The replaced part (stripped HTML or added HTML tag string)
-        let replaced: string = '';
-        if (!!selection.wasHidden || !selection.text) {
-          replaced = removeClickEvent(selection.id, eventType);
-          strippedStringAtIndx = i;
-        } else replaced = `<span class="${className}" id="${selection.id}" data-uuid=${selection.id}>${selection.text}</span>`;
-
-        // This either stays at one place, or is pushed however many more characters added to the start position
-        const leftMost: string = editorArea.value.substring(curSelectionStartPosition >= prevSelectionUpdatedEndPosition
-          ? curSelectionStartPosition
-          : prevSelectionUpdatedEndPosition, selection.start);
-        const rightMost: string = editorArea.value.substring(selection.end, nextSelectionStartPosition >= selection.end
-          ? nextSelectionStartPosition
-          : selection.end);
-        wholeContent += `${leftMost}${replaced}${rightMost}`;
+        else if (eventType.indexOf('deleteContent') > -1) {
+          if (i < selectedText.length - 1) {
+            selection.start += numOfModifiedCharacters;
+            selectedText[i + 1].start += numOfModifiedCharacters;
+            nextSelectionStartPosition = selectedText[i + 1].start;
+          }
+        }
+        selection.end += numOfModifiedCharacters;
+      } else if (!!caretInBetweenSelectedTexts(
+          eventType,
+          editorActualCaretPosition,
+          numOfModifiedCharacters,
+          !startOfInterval ? selection : startOfInterval, selectedText[i + 1]
+        )) {
+        if (!caretOnEitherEndOfText(eventType, editorActualCaretPosition, numOfModifiedCharacters, selectedText[i + 1])) {
+          // This is to only re-assign value to this variable ONCE, to compare it with the rest blocks of selection
+          if (!startOfInterval) startOfInterval = deepClone(selection);
+          selectedText[i + 1].start += numOfModifiedCharacters;
+          nextSelectionStartPosition = selectedText[i + 1].start;
+        }
+      } else if (!!caretInBetweenASelectedText(eventType, editorActualCaretPosition, selection)) {
+        selection.end += numOfModifiedCharacters;
       }
-    } catch (error) {
-      console.log(error);
+
+      selection.text = modifySelectedStringOnTextDeletion(
+        editorActualCaretPosition, numOfModifiedCharacters, selection, eventType,
+      );
+
+      // The replaced part (stripped HTML or added HTML tag string)
+      let replaced: string = '';
+      if (!!selection.wasHidden || !selection.text) {
+        replaced = removeClickEvent(selection.id, eventType);
+        strippedStringAtIndx = i;
+      } else replaced = `<span class="${className}" id="${selection.id}" data-uuid=${selection.id}>${selection.text}</span>`;
+
+      // This either stays at one place, or is pushed however many more characters added to the start position
+      const leftMost: string = editorArea.value.substring(curSelectionStartPosition >= prevSelectionUpdatedEndPosition
+        ? curSelectionStartPosition
+        : prevSelectionUpdatedEndPosition, selection.start);
+      const rightMost: string = editorArea.value.substring(selection.end, nextSelectionStartPosition >= selection.end
+        ? nextSelectionStartPosition
+        : selection.end);
+      wholeContent += `${leftMost}${replaced}${rightMost}`;
     }
     recentSelection = null;
     tempSelectedText = null;
@@ -317,13 +315,13 @@
     editorArea.value = replaceHTMLTags(content);
     previewArea.innerHTML = content;
     isContentLoaded = false;
+    appendClickEvent();
   };
 
   // Life Cycle
   onMount(() => {
     editorArea.focus();
     displayNewContent();
-    console.log('HERE');
   })
 
   $: if (!!controlClicked) {
@@ -332,7 +330,6 @@
   };
   $: if (!!isContentLoaded && !!editorArea && !!previewArea) {
     displayNewContent();
-    console.log('THERE');
   };
   $: if (!!editorWrapper) {
     if (!!menuShrinking) {

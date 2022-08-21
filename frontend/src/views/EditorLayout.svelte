@@ -15,6 +15,7 @@
   import type { Control } from '../lib/ControlsUI/ControlsUI';
   import type { SelectedText } from '../types/SelectedText';
   import type { Error } from '../types/Error';
+  import type { Document } from '../types/Document';
 
   // API
   import {
@@ -22,7 +23,9 @@
   } from '../API/DAPI';
 
   // Utilities
-  import { uuid, appendingArrayWithDuplicateChecker, swapArrayItems } from '../helper/utilities';
+  import {
+    uuid, parseTextContent, appendingArrayWithDuplicateChecker, swapArrayItems,
+  } from '../helper/utilities';
   import { cookiestore } from '../helper/storage';
 
   let selectedText: SelectedText[] = [];
@@ -46,7 +49,7 @@
   ];
   let controlClicked: boolean = false;
 
-  const orderByStartingPosition = (array: SelectedText[]) => array.sort((a, b) => a.start - b.start);
+  const orderByStartingPosition = (array: SelectedText[]): SelectedText[] => array.sort((a, b) => a.start - b.start);
 
   const modifyControls = (lookUpName: string, changedControl: Control): void => {
     const idx: number = controls.findIndex((control) => control.lookUpName === lookUpName);
@@ -54,7 +57,7 @@
     controls = swapArrayItems(controls, idx, changedControl);
   };
 
-  let className: string = '';
+  let className: string = 'hide';
   const hideContent = (lookUpName: string, changedControl: Control): void => {
     modifyControls(lookUpName, changedControl);
 
@@ -123,7 +126,7 @@
     });
   };
 
-  const triggerShortcutToHideText = (text: SelectedText) => {
+  const triggerShortcutToChangeTextVisibility = (text: SelectedText) => {
     if (!!isDuplicate) displayContent('hide', {
       lookUpName: 'display',
       title: 'Click to hide\nShortcut combination is CTRL + B',
@@ -143,16 +146,14 @@
       [ , isDuplicate ] = appendingArrayWithDuplicateChecker(IDs, detail.id);
     });
     detail.wasHidden = isDuplicate;
-    triggerShortcutToHideText(detail);
+    triggerShortcutToChangeTextVisibility(detail);
   };
 
   const removeSelectedText = ({ detail }) => {
     selectedText = selectedText.filter((__, idx) => idx !== detail);
   };
 
-  const newDocumentTitle = (): string => {
-    return 'New Empty Document';
-  };
+  const newDocumentTitle = (): string => 'New Empty Document';
 
   let loading: boolean = false;
   let newContentAdded: boolean = false;
@@ -174,6 +175,7 @@
         title: documentTitle,
         content: preview,
       };
+      console.log(documentId)
       const res = await DocumentSaveBuilder().addDocumentIdParam(documentId).addRequestBody(requestBody).PATCH(sessionId);
 
       if (!res.success) {
@@ -254,7 +256,7 @@
   };
 
   // Document Overview
-  const getDocuments = async (): Promise<[]> | null => {
+  const getDocuments = async (): Promise<Document[]> | null => {
     try {
       const res = await DocumentOverviewBuilder().addDefaultParams().GET(sessionId);
       if (!res.success) {
@@ -271,7 +273,7 @@
   };
 
   // Document Query
-  const getDocument = async (id): Promise<any> | null => {
+  const getDocument = async (id): Promise<Document> | null => {
     try {
       const res = await DocumentQueryBuilder().addDocumentId(id).GET(sessionId);
       if (!res.success) {
@@ -281,6 +283,7 @@
         return null;
       }
 
+      documentId = res.data.document._id;
       textEditorDisabled = false;
       return res.data.document;
     } catch (ex) {
@@ -308,10 +311,13 @@
     e.returnValue = 'There is some content that has not been saved. Are you sure you want to leave?';
   });
 
-  let allDocs: Array<any> | void = null;
-  const toLoadNewDocument = async (docId: string) => {
-    const firstDoc = await getDocument(docId);
+  let allDocs: Array<Document> | void = null;
+  const toLoadDocument = async (doc: Document) => {
+    const firstDoc = await getDocument(doc._id);
     if (!firstDoc) return;
+
+    selectedText = parseTextContent(doc.content);
+    documentTitle = doc.title;
 
     loadedDocument.loaded = true;
     loadedDocument.content = firstDoc.content;
@@ -335,7 +341,7 @@
 
     // Document Query (1st if not last editted)
     if (!!allDocs && allDocs.length > 0) {
-      toLoadNewDocument(allDocs[0]._id);
+      toLoadDocument(allDocs[0]);
     }
   });
 </script>
@@ -354,7 +360,7 @@
       bind:tempSelectedText
       bind:controlClicked
       on:select={textSelected}
-      on:ctrlB={() => { triggerShortcutToHideText(tempSelectedText); }}
+      on:ctrlB={() => { triggerShortcutToChangeTextVisibility(tempSelectedText); }}
       on:ctrlS={promptSaveDocument}
       on:ctrlZero={createDocument}
       on:text-click={triggerMouseClickToDisplayText}
@@ -384,7 +390,7 @@
   </section>
 
   <section id="documentsInfo" class:hidden={menuShrinking}>
-    <DocumentInfo {allDocs} on:get-document={({ detail }) => { toLoadNewDocument(detail._id); }} />
+    <DocumentInfo {allDocs} on:get-document={({ detail }) => { toLoadDocument(detail); }} />
   </section>
 
   {#if loading}
