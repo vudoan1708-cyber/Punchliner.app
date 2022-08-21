@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, afterUpdate } from 'svelte';
+
+  import Loading from '../components/Loading.svelte';
 
   //  API
   import { DocumentQueryBuilder } from '../API/DAPI';
@@ -18,7 +20,10 @@
     detail: '',
   };
   let document: Document;
+  let sharedRef: HTMLDivElement | void = null;
+  let loading: boolean = false;
   onMount(async () => {
+    loading = true;
     const sessionId = cookiestore.get('session');
     const res = await DocumentQueryBuilder().addDocumentId(documentId).GET(sessionId);
     if (!res.success) {
@@ -26,30 +31,38 @@
       error.detail = res.detail;
       return;
     }
+    loading = false;
     document = res.data.document;
-    console.log(document);
+  });
+
+  afterUpdate(() => {
+    if (!!sharedRef && sharedRef.childNodes.length > 2) {
+      const nodes = sharedRef.querySelectorAll('.hide');
+      nodes.forEach((node) => {
+        node.classList.replace('hide', 'shared-hide');
+      });
+    }
   });
 </script>
 
 <!-- <template> -->
-  <div class="shared">
+  <div id="shared" bind:this={sharedRef}>
     {#if !!document}
       <h2>{document.title}</h2>
-      <p>{@html document.content}</p>
+      <div>{@html document.content}</div>
+    {:else if loading}
+      <Loading />
     {:else}
       No Content to display
     {/if}
   </div>
 <!-- </template> -->
 
-<style>
-  :global(.hide) {
-    cursor: not-allowed;
-  }
-
-  :global(.hide:hover) {
+<style scoped>
+  :global(.shared-hide) {
     filter: blur(2px);
     background-color: var(--color-primary);
     color: transparent;
+    cursor: not-allowed;
   }
 </style>
