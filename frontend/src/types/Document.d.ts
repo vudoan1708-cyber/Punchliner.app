@@ -8,5 +8,5 @@ export type Document = {
   isShared: boolean;
   words: number;
   __v?: number;
-  _id: number;
+  _id: string;
 };

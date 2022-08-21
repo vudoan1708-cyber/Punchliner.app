@@ -390,7 +390,10 @@
   </section>
 
   <section id="documentsInfo" class:hidden={menuShrinking}>
-    <DocumentInfo {allDocs} on:get-document={({ detail }) => { toLoadDocument(detail); }} />
+    <DocumentInfo
+      {sessionId}
+      {allDocs}
+      on:get-document={({ detail }) => { toLoadDocument(detail); }} />
   </section>
 
   {#if loading}

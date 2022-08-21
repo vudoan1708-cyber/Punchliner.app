@@ -4,6 +4,7 @@
 	import Home from './views/Home.svelte';
 	import Account from './views/Account.svelte';
 	import EditorLayout from './views/EditorLayout.svelte';
+	import Shared from './views/Shared.svelte';
 	import NotFound from './views/NotFound.svelte';
 
   const fallbackRoute = (pathname) => {
@@ -38,6 +39,10 @@
 
     <Route path="editor" meta="{{ name: 'editor' }}" primary={false}>
       <EditorLayout />
+    </Route>
+    
+    <Route path="shared/:documentId" meta="{{ name: 'editor' }}" primary={false} let:params>
+      <Shared documentId={params.documentId} />
     </Route>
 
     <Route path="*" meta="{{ name: 'not found' }}">
