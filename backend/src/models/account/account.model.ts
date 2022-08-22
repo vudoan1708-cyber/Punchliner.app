@@ -22,6 +22,10 @@ const AccountSchema = new Schema<
       type: String,
       required: true,
     },
+    stripe_cus_id: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

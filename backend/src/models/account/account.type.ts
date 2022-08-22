@@ -3,6 +3,7 @@ import type { Model } from "mongoose";
 interface IAccountDoc {
   email: string;
   password: string;
+  stripe_cus_id: string;
 }
 
 interface IAccountMethods {
