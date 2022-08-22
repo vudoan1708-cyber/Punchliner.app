@@ -180,11 +180,16 @@ const shareDocument: ShareDocumentRequest = async (req, res, next) => {
 
     const targetDocument = await DocumentModel.findOne({
       _id: documentId,
-      ownerId: req.user._id,
     });
 
     if (!targetDocument) {
       throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
+    }
+
+    const isOwner = req.user._id === targetDocument.ownerId.toString();
+
+    if (!isOwner) {
+      throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
     }
 
     if (targetDocument.isShared) {
@@ -258,6 +263,48 @@ const canViewDocument: CanViewDocumentRequest = async (req, res, next) => {
   }
 };
 
+type UnShareDocumentRequest = RequestHandlerWithType<
+  any,
+  any,
+  { documentId: string }
+>;
+
+const unShareDocument: UnShareDocumentRequest = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
+    }
+
+    const { documentId } = req.params;
+
+    const targetDocument = await DocumentModel.findOne({
+      _id: documentId,
+    });
+
+    if (!targetDocument) {
+      throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
+    }
+
+    const isOwner = req.user._id === targetDocument.ownerId.toString();
+
+    if (!isOwner) {
+      throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
+    }
+
+    targetDocument.isShared = false;
+
+    targetDocument.passcode = undefined;
+
+    await targetDocument.save();
+
+    res
+      .status(httpStatus.OK)
+      .json(createResponse({ document: targetDocument }));
+  } catch (e) {
+    next(e);
+  }
+};
+
 export default {
   getDocuments,
   saveDocument,
@@ -265,4 +312,5 @@ export default {
   createDocument,
   getDocumentById,
   canViewDocument,
+  unShareDocument,
 };

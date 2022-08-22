@@ -74,10 +74,22 @@ const CanViewDocumentSchema = z.object({
   }),
 });
 
+const UnShareDocumentSchema = z.object({
+  params: z
+    .object({
+      documentId: z.string().min(1, SAVE_DOCUMENT_INVALID_DOCUMENT_ID),
+    })
+    .refine(checkDocumentIdParam, {
+      message: SAVE_DOCUMENT_INVALID_DOCUMENT_ID,
+      path: ["documentId"],
+    }),
+});
+
 export {
   SaveDocumentSchema,
   CreateDocumentSchema,
   GetDocumentByIdSchema,
   ShareDocumentSchema,
   CanViewDocumentSchema,
+  UnShareDocumentSchema,
 };

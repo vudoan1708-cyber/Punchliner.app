@@ -7,6 +7,7 @@ import {
   GetDocumentByIdSchema,
   ShareDocumentSchema,
   CanViewDocumentSchema,
+  UnShareDocumentSchema,
 } from "../../schema/document.schema";
 
 const router = express.Router();
@@ -43,6 +44,12 @@ router.post(
   `/:${DOCUMENT_ID_PARAM}/shared/viewed`,
   schemaValidate(CanViewDocumentSchema),
   DocumentController.canViewDocument
+);
+
+router.patch(
+  `/unshare/:${DOCUMENT_ID_PARAM}`,
+  schemaValidate(UnShareDocumentSchema),
+  DocumentController.unShareDocument
 );
 
 export default router;
