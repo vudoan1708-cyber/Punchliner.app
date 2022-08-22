@@ -20,7 +20,9 @@
   let password: string|null = null;
 
   let loading: boolean = false;
-  const error: Error = {
+
+  type Message = Error;
+  const message: Message = {
     message: null,
     detail: null,  
   };
@@ -32,6 +34,7 @@
   const goToEditor = async (): Promise<void> => {
     let bearer: string|null = null;
     let userId: string|null = null;
+    let userEmail: string|null = null;
 
     if (disabled || password.length < passwordRef.minLength) return;
 
@@ -42,15 +45,17 @@
         .addRequestBody({ email, password })
         .POST();
       if (!response.success) {
-        error.message = response.message;
-        error.detail = response.detail;
+        message.message = response.message;
+        message.detail = response.detail;
         return;
       }
 
       ({ bearer } = response.data);
       userId = response.data.user._id;
+      userEmail = response.data.user.email;
       cookiestore.set({ name: 'session', value: bearer });
       cookiestore.set({ name: 'userId', value: userId });
+      cookiestore.set({ name: 'userEmail', value: userEmail });
 
       navigate('/editor', { replace: false });
     } finally {
@@ -61,8 +66,8 @@
   // Life Cycles
   onMount(() => {
     const { search } = window.location;
-    if (!search.includes('error_message')) return;
-    error.message = decodeURI(search.split('=')[1]);
+    if (!search.includes('message')) return;
+    message.message = decodeURI(search.split('=')[1]);
   });
 
   $: disabled = !email || !password;
@@ -98,13 +103,13 @@
     {/if}
   </form>
 
-  {#if !!error.message || !!error.detail}
+  {#if !!message.message || !!message.detail}
     <Modal
-      title="Error"
-      style="min-height: 5em;"
+      title="Message"
+      style={message.message.length < 61 ? 'min-height: 5em;' : 'min-height: 6em;'}
       backgroundClose
-      on:close={() => { error.message = null; error.detail = null; }}>
-      <div>{error.message}</div>
+      on:close={() => { message.message = null; message.detail = null; }}>
+      <div>{message.message}</div>
     </Modal>
   {/if}
 <!-- </template> -->
@@ -112,9 +117,22 @@
 <style>
   form {
     position: relative;
+    width: 300px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-bottom: var(--padding);
+    border: var(--border-width) solid var(--color-primary);
+    border-radius: var(--border-radius);
+  }
+
+  form h2 {
+    position: relative;
+    width: 100%;
+    margin-top: 0;
+    text-align: center;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
   }
 
   .form_content {

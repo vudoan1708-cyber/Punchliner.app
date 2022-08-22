@@ -112,7 +112,7 @@ export const cookiestore: ICookieStore = {
     return this.getAllRawOrProcessed(true);
   },
   remove(name) {
-    this.set(name, '', -1);
+    this.set({ name, value: '', expires: -1 });
   },
   removeAll() {
     const cookies = this.getAll();

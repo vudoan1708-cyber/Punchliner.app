@@ -38,7 +38,8 @@
       ({ bearer } = response.data);
       cookiestore.set({ name: 'session', value: bearer });
 
-      navigate('/account/login', { replace: false });
+      const message = 'Congratulations! You have just created a new account. \nPlease login using the newly created credentials';
+      navigate(`/account/login?message=${encodeURIComponent(message)}`, { replace: false });
     } catch (err) {
       console.error(err);
     } finally {
@@ -93,9 +94,22 @@
 <style>
   form {
     position: relative;
+    width: 300px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-bottom: var(--padding);
+    border: var(--border-width) solid var(--color-primary);
+    border-radius: var(--border-radius);
+  }
+
+  form h2 {
+    position: relative;
+    width: 100%;
+    margin-top: 0;
+    text-align: center;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
   }
 
   .form_content {
