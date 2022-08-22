@@ -6,11 +6,12 @@ import {
   CreateDocumentSchema,
   GetDocumentByIdSchema,
   ShareDocumentSchema,
+  CanViewDocumentSchema,
 } from "../../schema/document.schema";
 
 const router = express.Router();
 
-const DOCUMENT_ID_PARAM = "documentId";
+export const DOCUMENT_ID_PARAM = "documentId";
 
 router.get("/overview", DocumentController.getDocuments);
 
@@ -36,6 +37,12 @@ router.post(
   `/share/:${DOCUMENT_ID_PARAM}`,
   schemaValidate(ShareDocumentSchema),
   DocumentController.shareDocument
+);
+
+router.post(
+  `/:${DOCUMENT_ID_PARAM}/shared/viewed`,
+  schemaValidate(CanViewDocumentSchema),
+  DocumentController.canViewDocument
 );
 
 export default router;

@@ -1,16 +1,24 @@
 import z from "zod";
+import { DOCUMENT_ID_PARAM } from "../routes/v1/document";
 import {
   CREATE_DOCUMENT_INVALID_TITLE,
   SAVE_DOCUMENT_INVALID_DOCUMENT_ID,
   SHARE_DOCUMENT_INVALID_PASSCODE,
 } from "../shared/error";
 
+// utils -> seperate later
+function checkDocumentIdParam(data: { documentId: string }): boolean {
+  return (
+    Boolean(data.documentId) && data.documentId !== `:${DOCUMENT_ID_PARAM}`
+  );
+}
+
 const SaveDocumentSchema = z.object({
   params: z
     .object({
       documentId: z.string().min(1, SAVE_DOCUMENT_INVALID_DOCUMENT_ID),
     })
-    .refine((data) => data.documentId !== ":documentId", {
+    .refine(checkDocumentIdParam, {
       message: SAVE_DOCUMENT_INVALID_DOCUMENT_ID,
       path: ["documentId"],
     }),
@@ -32,13 +40,10 @@ const GetDocumentByIdSchema = z.object({
     .object({
       documentId: z.string().min(1, SAVE_DOCUMENT_INVALID_DOCUMENT_ID),
     })
-    .refine((data) => data.documentId !== ":documentId", {
+    .refine(checkDocumentIdParam, {
       message: SAVE_DOCUMENT_INVALID_DOCUMENT_ID,
       path: ["documentId"],
     }),
-  query: z.object({
-    passcode: z.string().optional(),
-  }),
 });
 
 const ShareDocumentSchema = z.object({
@@ -46,7 +51,21 @@ const ShareDocumentSchema = z.object({
     .object({
       documentId: z.string().min(1, SAVE_DOCUMENT_INVALID_DOCUMENT_ID),
     })
-    .refine((data) => data.documentId !== ":documentId", {
+    .refine(checkDocumentIdParam, {
+      message: SAVE_DOCUMENT_INVALID_DOCUMENT_ID,
+      path: ["documentId"],
+    }),
+  body: z.object({
+    passcode: z.string().min(6, SHARE_DOCUMENT_INVALID_PASSCODE),
+  }),
+});
+
+const CanViewDocumentSchema = z.object({
+  params: z
+    .object({
+      documentId: z.string().min(1, SAVE_DOCUMENT_INVALID_DOCUMENT_ID),
+    })
+    .refine(checkDocumentIdParam, {
       message: SAVE_DOCUMENT_INVALID_DOCUMENT_ID,
       path: ["documentId"],
     }),
@@ -60,4 +79,5 @@ export {
   CreateDocumentSchema,
   GetDocumentByIdSchema,
   ShareDocumentSchema,
+  CanViewDocumentSchema,
 };
