@@ -1,11 +1,30 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+
   import { navigate } from 'svelte-navigator';
 
+  import Modal from '../components/Modal.svelte';
   import Button from '../components/Button.svelte';
+
+  // Type
+  import type { Error } from '../types/Error';
+
+  type Message = Error;
+  const message: Message = {
+    message: '',
+    detail: '',
+  };
 
   const goToRegisterScreen = () => {
     navigate('/account/register');
   };
+
+  // Life Cycle
+  onMount(() => {
+    const { search } = window.location;
+    if (!search.includes('message')) return;
+    message.message = decodeURI(search.split('=')[1]);
+  });
 </script>
 
 <!-- <template> -->
@@ -35,6 +54,16 @@
         <p>Punchliner is free to use. Create a new account and start writing immediately with no credit card required.</p>
       </div>
     </div>
+
+    {#if !!message.message || !!message.detail}
+      <Modal
+        title="Message"
+        style="min-height: 5em;"
+        backgroundClose
+        on:close={() => { message.message = null; message.detail = null; }}>
+        <div>{message.message}</div>
+      </Modal>
+    {/if}
   </section>
 <!-- </template> -->
 

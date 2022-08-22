@@ -3,9 +3,10 @@
   import { navigate } from 'svelte-navigator';
 
   import Loading from '../components/Loading.svelte';
+  import Modal from '../components/Modal.svelte';
 
   //  API
-  import { DocumentQueryBuilder } from '../API/DAPI';
+  import { DocumentViewShared } from '../API/DAPI';
 
   // Type
   import type { Error } from '../types/Error';
@@ -18,7 +19,13 @@
 
   export let documentId: string = null;
 
-  let passcode: string = null;
+  const passcode: {
+    required: boolean;
+    code: string;
+  } = {
+    required: false,
+    code: '',
+  };
 
   const goToHomepage = (): void => {
     navigate('/');
@@ -35,8 +42,13 @@
     loading = true;
     try {
       const sessionId = cookiestore.get('session');
-      const userId = cookiestore.get('userId');
-      const res = await DocumentQueryBuilder().addDocumentId(documentId).GET(sessionId);
+      const res = await DocumentViewShared().addDocumentId(documentId).addPasscode(passcode.code).POST(sessionId);
+
+      // This is to show a modal for filling in a passcode on an error message in a modal component
+      if (!res.success && res.passcodeRequired) {
+        passcode.required = res.passcodeRequired;
+      }
+      // This is to show error message in a modal component
       if (!res.success) {
         error.message = res.message;
         error.detail = res.detail;
@@ -74,6 +86,20 @@
       <Loading />
     {:else}
       No Content to display
+    {/if}
+
+    <!-- Modal for passcode -->
+    {#if passcode.required}
+      <Modal title="Message" style="min-height: 7em;">
+        <p>This document requires a passcode before it can be revealed to you.
+          Please enter the passcode that is shared to you from the document's owner</p>
+        <form on:submit|preventDefault>
+          <label for="passcode">
+            Passcode
+            <input type="password" minlength="6" bind:value={passcode.code} />
+          </label>
+        </form>
+      </Modal>
     {/if}
   </div>
 <!-- </template> -->

@@ -80,6 +80,8 @@
       </label>
     </div>
 
+    <p class="login_link">Already a member? <a href="/account/login"><u><i>Sign in.</i></u></a></p>
+
     <div>
       <Button id="register" {disabled} on:click={goToLoginScreen}>Register</Button>
       <Button id="cancel" type="secondary" on:click={goToHomepage}>Cancel</Button>
@@ -118,5 +120,13 @@
     display: flex;
     flex-direction: column;
     gap: var(--margin);
+  }
+
+  p.login_link {
+    position: relative;
+    margin: var(--margin);
+    margin-bottom: calc(var(--margin) * 2);
+    text-align: center;
+    font-size: var(--type-body-size);
   }
 </style>

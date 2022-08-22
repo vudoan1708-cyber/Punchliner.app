@@ -163,3 +163,57 @@ export const DocumentShareBuilder = (): IDocumentShareBuilder => {
 
   return blueprint;
 };
+
+/** Document View Share */
+interface IDocumentViewSharedBuilder extends IDocumentBuilder {
+  addDocumentId(arg: string | void): IDocumentViewSharedBuilder;
+  addPasscode(arg: string | void): IDocumentViewSharedBuilder;
+  POST(token): Promise<any>
+}
+
+export const DocumentViewShared = (): IDocumentViewSharedBuilder => {
+  const blueprint = {
+    URL: `${DAPI}/shared/viewed`,
+    BODY: {
+      passcode: '',
+    },
+    addDocumentId: (id) => {
+      blueprint.URL += `/${id}`;
+      return blueprint;
+    },
+    addPasscode: (passcode) => {
+      blueprint.BODY.passcode = passcode;
+      return blueprint;
+    },
+    POST: (token) => getFetch(blueprint.URL).addToken(token).post(blueprint.BODY),
+  };
+
+  return blueprint;
+};
+
+/** Document View Share */
+interface IDocumentUnshareBuilder extends IDocumentBuilder {
+  addDocumentId(arg: string | void): IDocumentUnshareBuilder;
+  addPasscode(arg: string | void): IDocumentUnshareBuilder;
+  PATCH(token): Promise<any>
+}
+
+export const DocumentUnshareBuilder = (): IDocumentUnshareBuilder => {
+  const blueprint = {
+    URL: `${DAPI}/unshare`,
+    BODY: {
+      passcode: '',
+    },
+    addDocumentId: (id) => {
+      blueprint.URL += `/${id}`;
+      return blueprint;
+    },
+    addPasscode: (passcode) => {
+      blueprint.BODY.passcode = passcode;
+      return blueprint;
+    },
+    PATCH: (token) => getFetch(blueprint.URL).addToken(token).patch(blueprint.BODY),
+  };
+
+  return blueprint;
+};
