@@ -51,6 +51,7 @@ AccountSchema.pre("save", function (next) {
 AccountSchema.method(
   "comparePassword",
   async function comparePassword(p: string) {
+    if (!this.password) return false;
     return await bcrypt.compare(p, this.password);
   }
 );

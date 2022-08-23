@@ -11,17 +11,16 @@ import ApiError from "../utils/api-error";
 import {
   DOCUMENT_ALREADY_SHARED,
   DOCUMENT_NOT_FOUND,
+  DOCUMENT_UNSHARE_FORBIDDEN_WRONG_PASSCODE,
   DOCUMENT_VIEW_FORBIDDEN,
   DOCUMENT_VIEW_FORBIDDEN_WRONG_PASSCODE,
   UNAUTHORIZED,
 } from "../shared/error";
 import DocumentService from "../services/document.service";
 
-const getDocuments: RequestHandlerWithType<any, PaginationOption> = async (
-  req,
-  res,
-  next
-) => {
+type GetDocumentOverviewRequest = RequestHandlerWithType<any, PaginationOption>;
+
+const getDocuments: GetDocumentOverviewRequest = async (req, res, next) => {
   try {
     if (!req.user) {
       throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
@@ -49,14 +48,16 @@ const getDocuments: RequestHandlerWithType<any, PaginationOption> = async (
   }
 };
 
-const saveDocument: RequestHandlerWithType<
+type SaveDocumentRequest = RequestHandlerWithType<
   {
     content: string;
     title: string;
   },
   any,
   { documentId: string }
-> = async (req, res, next) => {
+>;
+
+const saveDocument: SaveDocumentRequest = async (req, res, next) => {
   try {
     if (!req.user || !req.user._id) {
       throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
@@ -91,10 +92,12 @@ const saveDocument: RequestHandlerWithType<
   }
 };
 
-const createDocument: RequestHandlerWithType<{
+type CreateDocumentRequest = RequestHandlerWithType<{
   title: string;
   content: string;
-}> = async (req, res, next) => {
+}>;
+
+const createDocument: CreateDocumentRequest = async (req, res, next) => {
   try {
     if (!req.user) {
       throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
@@ -121,11 +124,13 @@ const createDocument: RequestHandlerWithType<{
   }
 };
 
-const getDocumentById: RequestHandlerWithType<
+type GetDocumentRequest = RequestHandlerWithType<
   any,
-  { passcode?: string },
+  any,
   { documentId: string }
-> = async (req, res, next) => {
+>;
+
+const getDocumentById: GetDocumentRequest = async (req, res, next) => {
   try {
     if (!req.user) {
       throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
@@ -133,7 +138,96 @@ const getDocumentById: RequestHandlerWithType<
 
     const { documentId } = req.params;
 
-    const { passcode } = req.query;
+    // NOTE: get document by id
+    const documentDetail = await DocumentModel.findOne({
+      _id: documentId,
+    });
+
+    if (!documentDetail) {
+      throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
+    }
+
+    const isOwner = req.user._id === documentDetail.ownerId.toString();
+
+    if (!isOwner) {
+      throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
+    }
+
+    res
+      .status(httpStatus.OK)
+      .json(createResponse({ document: documentDetail }));
+  } catch (e) {
+    next(e);
+  }
+};
+
+type ShareDocumentRequest = RequestHandlerWithType<
+  {
+    passcode: string;
+  },
+  any,
+  { documentId: string }
+>;
+
+const shareDocument: ShareDocumentRequest = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
+    }
+
+    const { documentId } = req.params;
+
+    const { passcode } = req.body;
+
+    const targetDocument = await DocumentModel.findOne({
+      _id: documentId,
+    });
+
+    if (!targetDocument) {
+      throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
+    }
+
+    const isOwner = req.user._id === targetDocument.ownerId.toString();
+
+    if (!isOwner) {
+      throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
+    }
+
+    if (targetDocument.isShared) {
+      throw new ApiError(httpStatus.CONFLICT, DOCUMENT_ALREADY_SHARED, true);
+    }
+
+    targetDocument.isShared = true;
+
+    targetDocument.passcode = passcode;
+
+    await targetDocument.save();
+
+    delete targetDocument.passcode;
+
+    res
+      .status(httpStatus.OK)
+      .json(createResponse({ document: targetDocument }));
+  } catch (e) {
+    next(e);
+  }
+};
+
+type CanViewDocumentRequest = RequestHandlerWithType<
+  { passcode: string },
+  any,
+  { documentId: string }
+>;
+
+const canViewDocument: CanViewDocumentRequest = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
+    }
+
+    const { documentId } = req.params;
+
+    const { passcode } = req.body;
 
     // NOTE: get document by id
     const documentDetail = await DocumentModel.findOne({
@@ -170,13 +264,13 @@ const getDocumentById: RequestHandlerWithType<
   }
 };
 
-const shareDocument: RequestHandlerWithType<
-  {
-    passcode: string;
-  },
+type UnShareDocumentRequest = RequestHandlerWithType<
+  { passcode: string },
   any,
   { documentId: string }
-> = async (req, res, next) => {
+>;
+
+const unShareDocument: UnShareDocumentRequest = async (req, res, next) => {
   try {
     if (!req.user) {
       throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
@@ -188,20 +282,31 @@ const shareDocument: RequestHandlerWithType<
 
     const targetDocument = await DocumentModel.findOne({
       _id: documentId,
-      ownerId: req.user._id,
     });
 
     if (!targetDocument) {
       throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
     }
 
-    if (targetDocument.isShared) {
-      throw new ApiError(httpStatus.CONFLICT, DOCUMENT_ALREADY_SHARED, true);
+    const isOwner = req.user._id === targetDocument.ownerId.toString();
+
+    if (!isOwner) {
+      throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
     }
 
-    targetDocument.isShared = true;
+    const isPasscodeValid = await targetDocument.comparePasscode(passcode);
 
-    targetDocument.passcode = passcode;
+    if (!isPasscodeValid) {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        DOCUMENT_UNSHARE_FORBIDDEN_WRONG_PASSCODE,
+        true
+      );
+    }
+
+    targetDocument.isShared = false;
+
+    targetDocument.passcode = undefined;
 
     await targetDocument.save();
 
@@ -219,4 +324,6 @@ export default {
   shareDocument,
   createDocument,
   getDocumentById,
+  canViewDocument,
+  unShareDocument,
 };
