@@ -17,6 +17,7 @@ const ERROR_EN: Record<ErrorCode, string> = {
   PAE105: "Document's content is required",
   PAE106: "You cannot view this document",
   PAE107: "Wrong document's passcode",
+  PAE108: "Cannot unshare (Wrong document's passcode)",
 };
 
 export { ERROR_EN };
