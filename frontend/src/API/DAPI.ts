@@ -191,7 +191,7 @@ export const DocumentViewShared = (): IDocumentViewSharedBuilder => {
   return blueprint;
 };
 
-/** Document View Share */
+/** Document Unshare */
 interface IDocumentUnshareBuilder extends IDocumentBuilder {
   addDocumentId(arg: string | void): IDocumentUnshareBuilder;
   addPasscode(arg: string | void): IDocumentUnshareBuilder;

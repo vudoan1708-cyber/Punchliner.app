@@ -130,10 +130,6 @@
           <label for="passcode">
             Passcode
             <input type="password" minlength="6" bind:value={passcode.code} bind:this={passcodeRef} />
-
-            {#if (!!error.message || !!error.detail) && passcode.times > 1}
-              <p class="inlineErrorMes">{error.message}</p>
-            {/if}
           </label>
 
           <Button
@@ -149,6 +145,10 @@
               OK
           </Button>
         </form>
+
+        {#if (!!error.message || !!error.detail) && passcode.times > 1}
+          <p class="inlineErrorMes">{error.message}</p>
+        {/if}
       </Modal>
     {/if}
   </div>
@@ -195,7 +195,7 @@
     justify-content: space-between;
   }
 
-  form .inlineErrorMes {
+  .inlineErrorMes {
     margin: var(--margin) var(--margin) 0 0;
     font-size: calc(var(--type-body-size) + var(--border-width));
     color: var(--color-error-foreground);

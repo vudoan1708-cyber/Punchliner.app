@@ -9,7 +9,7 @@
   import Icon from '../components/Icon/Icon.svelte';
 
   // API
-  import { DocumentShareBuilder } from '../API/DAPI';
+  import { DocumentShareBuilder, DocumentUnshareBuilder } from '../API/DAPI';
 
   // Type
   import type { Document } from '../types/Document';
@@ -51,6 +51,18 @@
     docToBeShared = null;
     passcode = null;
   };
+  const unshareDocument = async () => {
+    if (!docToBeShared || !passcode) return;
+    const res = await DocumentUnshareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).PATCH(sessionId);
+    if (!res.success) {
+      error.message = res.message;
+      error.detail = res.detail;
+      return;
+    }
+    docToBeShared = null;
+    passcode = null;
+  };
+
   const toggleShareability = (doc: Document): boolean => {
     docToBeShared = { ...doc, isShared: !doc.isShared };
     return docToBeShared.isShared;
@@ -135,7 +147,7 @@
 
   {#if !!docToBeShared}
     <Modal
-      title={`Share <i>${docToBeShared.title}</i>`}
+      title={`${docToBeShared.isShared ? 'Share' : 'Unshare'} <i>${docToBeShared.title}</i>`}
       style="max-width: 25em; min-height: 5em;"
       backgroundClose
       on:close={() => { revertShareability(); }}>
@@ -145,13 +157,23 @@
           <input type="password" required minlength="6" bind:value={passcode} />
         </label>
 
-        <Button type="secondary" on:click={shareDocument}>
+        <Button type="secondary" on:click={() => {
+          if (!docToBeShared) return;
+          if (docToBeShared.isShared) {
+            shareDocument();
+            return;
+          }
+          unshareDocument();
+        }}>
           <div style="display: flex; align-items: center; gap: calc(var(--margin) / 2);">
-            <Icon name="share" />
-            Share
+            <Icon name={docToBeShared.isShared ? 'share' : 'lock'} />
+            {docToBeShared.isShared ? 'Share' : 'Unshare'}
           </div>
         </Button>
       </form>
+      {#if (!!error.message || !!error.detail)}
+        <p class="inlineErrorMes">{error.message}</p>
+      {/if}
     </Modal>
   {/if}
 <!-- </template> -->
@@ -209,5 +231,11 @@
     align-items: center;
     gap: var(--margin);
     /* margin-bottom: var(--margin); */
+  }
+
+  .inlineErrorMes {
+    margin: var(--margin) var(--margin) 0 0;
+    font-size: calc(var(--type-body-size) + var(--border-width));
+    color: var(--color-error-foreground);
   }
 </style>
