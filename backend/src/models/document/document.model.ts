@@ -72,6 +72,7 @@ DocumentSchema.pre("save", function (next) {
 DocumentSchema.method(
   "comparePasscode",
   async function comparePasscode(p: string) {
+    if (!this.passcode) return false;
     return await bcrypt.compare(p, this.passcode);
   }
 );

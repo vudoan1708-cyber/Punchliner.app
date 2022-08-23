@@ -11,6 +11,7 @@ import ApiError from "../utils/api-error";
 import {
   DOCUMENT_ALREADY_SHARED,
   DOCUMENT_NOT_FOUND,
+  DOCUMENT_UNSHARE_FORBIDDEN_WRONG_PASSCODE,
   DOCUMENT_VIEW_FORBIDDEN,
   DOCUMENT_VIEW_FORBIDDEN_WRONG_PASSCODE,
   UNAUTHORIZED,
@@ -264,7 +265,7 @@ const canViewDocument: CanViewDocumentRequest = async (req, res, next) => {
 };
 
 type UnShareDocumentRequest = RequestHandlerWithType<
-  any,
+  { passcode: string },
   any,
   { documentId: string }
 >;
@@ -276,6 +277,8 @@ const unShareDocument: UnShareDocumentRequest = async (req, res, next) => {
     }
 
     const { documentId } = req.params;
+
+    const { passcode } = req.body;
 
     const targetDocument = await DocumentModel.findOne({
       _id: documentId,
@@ -289,6 +292,16 @@ const unShareDocument: UnShareDocumentRequest = async (req, res, next) => {
 
     if (!isOwner) {
       throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
+    }
+
+    const isPasscodeValid = await targetDocument.comparePasscode(passcode);
+
+    if (!isPasscodeValid) {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        DOCUMENT_UNSHARE_FORBIDDEN_WRONG_PASSCODE,
+        true
+      );
     }
 
     targetDocument.isShared = false;

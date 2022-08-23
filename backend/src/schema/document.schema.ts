@@ -70,7 +70,7 @@ const CanViewDocumentSchema = z.object({
       path: ["documentId"],
     }),
   body: z.object({
-    passcode: z.string().min(6, SHARE_DOCUMENT_INVALID_PASSCODE),
+    passcode: z.string().optional(),
   }),
 });
 
@@ -83,6 +83,9 @@ const UnShareDocumentSchema = z.object({
       message: SAVE_DOCUMENT_INVALID_DOCUMENT_ID,
       path: ["documentId"],
     }),
+  body: z.object({
+    passcode: z.string().min(6, SHARE_DOCUMENT_INVALID_PASSCODE),
+  }),
 });
 
 export {
