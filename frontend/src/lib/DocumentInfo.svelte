@@ -2,7 +2,6 @@
   import 'tippy.js/animations/scale.css';
 
   import { createEventDispatcher } from 'svelte';
-  import { navigate } from 'svelte-navigator';
 
   import Button from '../components/Button.svelte';
   import Modal from '../components/Modal.svelte';
@@ -57,8 +56,6 @@
     return docToBeShared.isShared;
   };
   const viewSharedDocument = (doc: Document) => {
-    console.log(`Navigate to the share URL with this document ${JSON.stringify(doc, null, 2)}`);
-    // navigate(`/shared/${doc._id}`, { replace: true });
     window.open(`/shared/${doc._id}`, '_blank');
   };
   const retrieveDocument = (doc: Document) => {
@@ -139,7 +136,7 @@
   {#if !!docToBeShared}
     <Modal
       title={`Share <i>${docToBeShared.title}</i>`}
-      style="max-width: 25em; min-height: 7em;"
+      style="max-width: 25em; min-height: 5em;"
       backgroundClose
       on:close={() => { revertShareability(); }}>
       <form class="sharePrompt" on:submit|preventDefault>
@@ -148,7 +145,7 @@
           <input type="password" required minlength="6" bind:value={passcode} />
         </label>
 
-        <Button type="secondary" style="align-self: flex-end;" on:click={shareDocument}>
+        <Button type="secondary" on:click={shareDocument}>
           <div style="display: flex; align-items: center; gap: calc(var(--margin) / 2);">
             <Icon name="share" />
             Share
@@ -201,8 +198,9 @@
     position: relative;
     width: 100%;
     display: flex;
-    flex-direction: column;
+    /* flex-direction: column; */
     justify-content: space-between;
+    align-items: center;
     margin-top: var(--margin);
   }
 
@@ -210,6 +208,6 @@
     flex-direction: row;
     align-items: center;
     gap: var(--margin);
-    margin-bottom: var(--margin);
+    /* margin-bottom: var(--margin); */
   }
 </style>

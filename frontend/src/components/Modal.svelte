@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   /* eslint-disable camelcase */
 
   import { createEventDispatcher, onDestroy, onMount } from 'svelte';
@@ -7,11 +7,12 @@
 
   const dispatch = createEventDispatcher();
   const close = () => dispatch('close');
-  export let title = 'Modal Dialog';
-  export let size = 'small';
-  export let style = null;
-  export let backgroundClose = false;
-  export let hasScroller = true;
+  export let title: string = 'Modal Dialog';
+  export let size: string = 'small';
+  export let style: string = null;
+  export let backgroundClose: boolean = false;
+  export let hasScroller: boolean = true;
+  export let hideClose: boolean = false;
 
   const small = size === 'small';
   const medium = size === 'medium';
@@ -66,9 +67,11 @@
       <div class="header">
         <!-- eslint-disable-next-line @ota-meshi/svelte/no-at-html-tags -->
         <h2 data-testid="title">{ @html title }</h2>
-        <button data-testid="close-button" on:click|stopPropagation={close} class="close">
-          x
-        </button>
+        {#if !hideClose}
+          <button data-testid="close-button" on:click|stopPropagation={close} class="close">
+            x
+          </button>
+        {/if}
       </div>
       <div class="modal-body">
         <slot />

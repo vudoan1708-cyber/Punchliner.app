@@ -173,7 +173,7 @@ interface IDocumentViewSharedBuilder extends IDocumentBuilder {
 
 export const DocumentViewShared = (): IDocumentViewSharedBuilder => {
   const blueprint = {
-    URL: `${DAPI}/shared/viewed`,
+    URL: `${DAPI}/view`,
     BODY: {
       passcode: '',
     },
