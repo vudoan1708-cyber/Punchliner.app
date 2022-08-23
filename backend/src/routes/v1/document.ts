@@ -41,7 +41,7 @@ router.post(
 );
 
 router.post(
-  `/:${DOCUMENT_ID_PARAM}/shared/viewed`,
+  `/view/:${DOCUMENT_ID_PARAM}`,
   schemaValidate(CanViewDocumentSchema),
   DocumentController.canViewDocument
 );
