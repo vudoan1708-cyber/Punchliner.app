@@ -109,7 +109,7 @@ const createDocument: CreateDocumentRequest = async (req, res, next) => {
       ownerId: req.user._id,
     });
 
-    if (numberOfDocuments >= 1 && req.user.type !== AppUserTypeEnum.PREMIUM) {
+    if (numberOfDocuments !== 0 && req.user.type !== AppUserTypeEnum.PREMIUM) {
       throw new ApiError(httpStatus.FORBIDDEN, NOT_PREMIUM_USER, true);
     }
 
