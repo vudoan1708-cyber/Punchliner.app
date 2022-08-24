@@ -1,5 +1,6 @@
 import express from "express";
 import DocumentController from "../../controllers/document";
+import isPremiumUser from "../../middlewares/premium-only";
 import { schemaValidate } from "../../middlewares/schema-validator";
 import {
   SaveDocumentSchema,
@@ -36,6 +37,7 @@ router.patch(
 
 router.post(
   `/share/:${DOCUMENT_ID_PARAM}`,
+  isPremiumUser,
   schemaValidate(ShareDocumentSchema),
   DocumentController.shareDocument
 );
