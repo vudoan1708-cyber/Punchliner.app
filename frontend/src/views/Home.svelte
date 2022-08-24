@@ -6,6 +6,9 @@
   import Modal from '../components/Modal.svelte';
   import Button from '../components/Button.svelte';
 
+  // Utility
+  import { cookiestore } from '../helper/storage';
+
   // Type
   import type { Error } from '../types/Error';
 
@@ -21,6 +24,9 @@
 
   // Life Cycle
   onMount(() => {
+    const session = cookiestore.get('session');
+    if (!!session) navigate('/editor');
+
     const { search } = window.location;
     if (!search.includes('message')) return;
     message.message = decodeURI(search.split('=')[1]);
@@ -37,7 +43,7 @@
       <div>
         <h3>Shareable documents with password protection</h3>
         <p>Written documents can be shared using a secure link and password protection.
-          Only users who have a Punchliner's account and the password can get access to the shared documents.</p>
+          Only users who have a Punchliner's account and the shared passcode can get access to the shared documents.</p>
       </div>
       <div>
         <h3>Safe and secure automatic backups</h3>
@@ -47,11 +53,29 @@
       <div>
         <h3>Hidden text</h3>
         <p>We take pride in one of the main features of Punchliner, which also led to the birth of the application
-          and that is the ability to display and hide text on demand.</p>
+          and that is the ability to display and hide text on demand.<br />
+          This feature allows users to blur the punchlines when you're joke writing
+          and leave it as a surprise when the hidden text is hovered on by someone else !!!</p>
       </div>
       <div>
         <h3>Pricing</h3>
-        <p>Punchliner is free to use. Create a new account and start writing immediately with no credit card required.</p>
+        <p>Punchliner is free to use with limited features. Create a new account and start writing immediately
+          with no credit card required.<br />
+          Premium accounts that allow for an unlimited number of documents to be created and
+          sharing written documents with passcode protection has never been easier.
+        </p>
+        <table class="pricingTable">
+          <tbody>
+            <tr>
+              <th>Punchliner BASIC</th>
+              <td>Free</td>
+            </tr>
+            <tr>
+              <th>Punchliner PREMIUM</th>
+              <td>$3 / month</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -86,5 +110,11 @@
   div.features h3,
   div.features p {
     margin: var(--margin);
+  }
+
+  table.pricingTable {
+    position: relative;
+    width: 50%;
+    margin: calc(var(--margin) * 3) auto;
   }
 </style>

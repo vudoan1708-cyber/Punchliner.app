@@ -324,9 +324,6 @@
 
   // Life Cycles
   onMount(async () => {
-    // Make 2 or 3 API calls here
-    // Shareable Document check
-
     // Document Overview API (get document ID(s))
     allDocs = await getDocuments();
 
