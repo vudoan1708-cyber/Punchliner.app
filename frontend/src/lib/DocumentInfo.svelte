@@ -1,11 +1,22 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
   import 'tippy.js/animations/scale.css';
 
+  import { createEventDispatcher } from 'svelte';
+
+  import Button from '../components/Button.svelte';
+  import Modal from '../components/Modal.svelte';
   import ToolTip from '../components/ToolTip.svelte';
   import Icon from '../components/Icon/Icon.svelte';
 
-  export let allDocs: Array<any> | void = null;
+  // API
+  import { DocumentShareBuilder, DocumentUnshareBuilder } from '../API/DAPI';
+
+  // Type
+  import type { Document } from '../types/Document';
+  import type { Error } from '../types/Error';
+
+  export let sessionId: string | void = null;
+  export let allDocs: Array<Document> | void = null;
 
   const dispatch = createEventDispatcher();
 
@@ -23,12 +34,56 @@
   };
 
   // Event Handlers
-  const toggleShareability = (shareable: boolean): boolean => !shareable;
-  const viewSharedDocument = (doc) => {
-    console.log(`Navigate to the share URL with this document ${JSON.stringify(doc, null, 2)}`);
+  let passcode: string = null;
+  let docToBeShared: Document | void = null;
+  const error: Error = {
+    message: '',
+    detail: '',
   };
-  const retrieveDocument = (doc) => {
+  const shareDocument = async (): Promise<void> => {
+    if (!docToBeShared || !passcode) return;
+    const res = await DocumentShareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).POST(sessionId);
+    if (!res.success) {
+      error.message = res.message;
+      error.detail = res.detail;
+      return;
+    }
+    docToBeShared = null;
+    passcode = null;
+  };
+  const unshareDocument = async () => {
+    if (!docToBeShared || !passcode) return;
+    const res = await DocumentUnshareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).PATCH(sessionId);
+    if (!res.success) {
+      error.message = res.message;
+      error.detail = res.detail;
+      return;
+    }
+    docToBeShared = null;
+    passcode = null;
+  };
+
+  const toggleShareability = (doc: Document): boolean => {
+    docToBeShared = { ...doc, isShared: !doc.isShared };
+    return docToBeShared.isShared;
+  };
+  const viewSharedDocument = (doc: Document) => {
+    window.open(`/shared/${doc._id}`, '_blank');
+  };
+  const retrieveDocument = (doc: Document) => {
     dispatch('get-document', doc);
+  };
+  const revertShareability = () => {
+    if (!docToBeShared || !allDocs) return;
+
+    allDocs = allDocs.map((doc) => {
+      if (doc._id === (docToBeShared as Document)._id) {
+        return { ...doc, isShared: !(docToBeShared as Document).isShared, };
+      }
+      return doc;
+    })
+    docToBeShared = null;
+    passcode = null;
   };
 </script>
 
@@ -69,7 +124,7 @@
                 <span
                   title={doc.isShared ? 'This document is shared' : 'This document is not shared'}
                   style="cursor: pointer;"
-                  on:click|stopPropagation={() => { doc.isShared = toggleShareability(doc.isShared); }}>
+                  on:click|stopPropagation={() => { doc.isShared = toggleShareability(doc); }}>
                   <Icon name={doc.isShared ? 'unlock' : 'lock'} />
                 </span>
                 {#if doc.isShared}
@@ -88,6 +143,38 @@
     </table>
   {:else}
     <div class="noDoc">No saved documents to display</div>
+  {/if}
+
+  {#if !!docToBeShared}
+    <Modal
+      title={`${docToBeShared.isShared ? 'Share' : 'Unshare'} <i>${docToBeShared.title}</i>`}
+      style="max-width: 25em; min-height: 5em;"
+      backgroundClose
+      on:close={() => { revertShareability(); }}>
+      <form class="sharePrompt" on:submit|preventDefault>
+        <label for="passcode">
+          Passcode
+          <input type="password" required minlength="6" bind:value={passcode} />
+        </label>
+
+        <Button type="secondary" on:click={() => {
+          if (!docToBeShared) return;
+          if (docToBeShared.isShared) {
+            shareDocument();
+            return;
+          }
+          unshareDocument();
+        }}>
+          <div style="display: flex; align-items: center; gap: calc(var(--margin) / 2);">
+            <Icon name={docToBeShared.isShared ? 'share' : 'lock'} />
+            {docToBeShared.isShared ? 'Share' : 'Unshare'}
+          </div>
+        </Button>
+      </form>
+      {#if (!!error.message || !!error.detail)}
+        <p class="inlineErrorMes">{error.message}</p>
+      {/if}
+    </Modal>
   {/if}
 <!-- </template> -->
 
@@ -127,5 +214,28 @@
     align-items: center;
     justify-content: center;
     gap: calc(var(--margin) / 2);
+  }
+
+  form.sharePrompt {
+    position: relative;
+    width: 100%;
+    display: flex;
+    /* flex-direction: column; */
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--margin);
+  }
+
+  form.sharePrompt label {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--margin);
+    /* margin-bottom: var(--margin); */
+  }
+
+  .inlineErrorMes {
+    margin: var(--margin) var(--margin) 0 0;
+    font-size: calc(var(--type-body-size) + var(--border-width));
+    color: var(--color-error-foreground);
   }
 </style>

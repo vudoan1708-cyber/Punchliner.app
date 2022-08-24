@@ -76,7 +76,7 @@
     }
   };
 
-  const idGenerator = (detail): string => uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()} ${detail.start} ${detail.end}`);
+  const idGenerator = (detail): string => uuid(`${detail.text.replace(/[\r\n]/gm, '').trim()}+${detail.start}+${detail.end}`);
 
   // Event Handlers
   let tempSelectedText: SelectedText | null = null;
@@ -175,7 +175,6 @@
         title: documentTitle,
         content: preview,
       };
-      console.log(documentId)
       const res = await DocumentSaveBuilder().addDocumentIdParam(documentId).addRequestBody(requestBody).PATCH(sessionId);
 
       if (!res.success) {
@@ -341,6 +340,7 @@
 
     // Document Query (1st if not last editted)
     if (!!allDocs && allDocs.length > 0) {
+      allDocs = allDocs.sort((a, b) => (new Date(b.updated_at) as any) - (new Date(a.updated_at) as any));
       toLoadDocument(allDocs[0]);
     }
   });
@@ -390,7 +390,10 @@
   </section>
 
   <section id="documentsInfo" class:hidden={menuShrinking}>
-    <DocumentInfo {allDocs} on:get-document={({ detail }) => { toLoadDocument(detail); }} />
+    <DocumentInfo
+      {sessionId}
+      {allDocs}
+      on:get-document={({ detail }) => { toLoadDocument(detail); }} />
   </section>
 
   {#if loading}

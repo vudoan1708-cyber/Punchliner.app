@@ -170,8 +170,8 @@
     right: 0;
     bottom: 0;
     border-radius: calc(var(--border-radius) * 6);
-    border: 1px solid var(--color-neutral-600);
-    background-color: var(--color-neutral-300);
+    border: var(--border-width) solid var(--color-neutral-600);
+    background-color: var(--color-neutral-600);
     transition: .4s;
   }
 

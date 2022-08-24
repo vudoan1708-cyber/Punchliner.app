@@ -6,7 +6,7 @@ const extractSpanTags = (textContent: string): NodeListOf<Element> => {
   return htmlContent.querySelectorAll('[data-uuid].hide');
 };
 
-const revertIDGeneration = (character: string = null): string[] => character.split('_');
+const revertIDGeneration = (character: string = null): string[] => character.split('-');
 
 const selectedTextFactory = ({
   id, text, start, end, wasHidden = false,
@@ -30,7 +30,7 @@ export default (textContent: string): SelectedText[] | [] => {
   tags.forEach((tag) => {
     const reverted = revertIDGeneration(tag.id);
     selectedTexts.push(selectedTextFactory({
-      id: tag.id, text: reverted[0], start: reverted[1], end: reverted[2],
+      id: tag.id, text: reverted[0], start: Number(reverted[1]), end: Number(reverted[2]),
     }));
   });
 

@@ -1,10 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
 
+  import { navigate } from 'svelte-navigator';
+
   import { cookiestore } from '../helper/storage';
 
   const logOut = () => {
     cookiestore.removeAll();
+
+    const message = 'You have just successfully logged out!';
+    navigate(`/?message=${encodeURIComponent(message)}`);
   };
 
   let userEmail: string | void = '';
