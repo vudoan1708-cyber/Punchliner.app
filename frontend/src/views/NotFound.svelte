@@ -7,7 +7,7 @@
 
   const goToHomepage = () => {
     cookiestore.removeAll();
-    navigate('./', { replace: true });
+    navigate('/', { replace: true });
   };
 </script>
 
@@ -32,6 +32,7 @@
   section#NotFound {
     position: relative;
     width: 100%;
+    max-width: 900px;
     height: 100vh;
     display: flex;
     flex-direction: column;

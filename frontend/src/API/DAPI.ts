@@ -5,14 +5,17 @@ type PatchBody = {
   title?: string;
   content: string;
 };
+type ShareBody = {
+  passcode: string;
+};
 
-interface IDocumentSharedBuilder {
+interface IDocumentBuilder {
   URL: string;
-  BODY?: PatchBody;
+  BODY?: PatchBody | ShareBody;
 }
 
 /** Document Save */
-interface IDocumentSaveBuilder extends IDocumentSharedBuilder {
+interface IDocumentSaveBuilder extends IDocumentBuilder {
   addDocumentIdParam(arg: string): IDocumentSaveBuilder;
   addRequestBody({ ...args }: PatchBody): IDocumentSaveBuilder;
   resetRequestBody(): IDocumentSaveBuilder;
@@ -51,7 +54,7 @@ export const DocumentSaveBuilder = (): IDocumentSaveBuilder => {
 };
 
 /** Document Create */
-interface IDocumentCreateBuilder extends IDocumentSharedBuilder {
+interface IDocumentCreateBuilder extends IDocumentBuilder {
   addRequestBody({ ...args }: PatchBody): IDocumentCreateBuilder;
   resetRequestBody(): IDocumentCreateBuilder;
   POST(arg: string | void): Promise<any>
@@ -85,7 +88,7 @@ export const DocumentCreateBuilder = (): IDocumentCreateBuilder => {
 };
 
 /** Document Overview */
-interface IDocumentOverviewBuilder extends IDocumentSharedBuilder {
+interface IDocumentOverviewBuilder extends IDocumentBuilder {
   addDefaultParams(): IDocumentOverviewBuilder;
   addPage(arg: number | string): IDocumentOverviewBuilder;
   addPageSize(arg: number | string): IDocumentOverviewBuilder;
@@ -116,7 +119,7 @@ export const DocumentOverviewBuilder = (): IDocumentOverviewBuilder => {
 };
 
 /** Document Query */
-interface IDocumentQueryBuilder extends IDocumentSharedBuilder {
+interface IDocumentQueryBuilder extends IDocumentBuilder {
   addDocumentId(arg: string): IDocumentQueryBuilder;
   GET(token): Promise<any>
 }
@@ -129,6 +132,87 @@ export const DocumentQueryBuilder = (): IDocumentQueryBuilder => {
       return blueprint;
     },
     GET: (token) => getFetch(blueprint.URL).addToken(token).get(),
+  };
+
+  return blueprint;
+};
+
+/** Document Share */
+interface IDocumentShareBuilder extends IDocumentBuilder {
+  addDocumentId(arg: string | void): IDocumentShareBuilder;
+  addPasscode(arg: string | void): IDocumentShareBuilder;
+  POST(token): Promise<any>
+}
+
+export const DocumentShareBuilder = (): IDocumentShareBuilder => {
+  const blueprint = {
+    URL: `${DAPI}/share`,
+    BODY: {
+      passcode: '',
+    },
+    addDocumentId: (id) => {
+      blueprint.URL += `/${id}`;
+      return blueprint;
+    },
+    addPasscode: (passcode) => {
+      blueprint.BODY.passcode = passcode;
+      return blueprint;
+    },
+    POST: (token) => getFetch(blueprint.URL).addToken(token).post(blueprint.BODY),
+  };
+
+  return blueprint;
+};
+
+/** Document View Share */
+interface IDocumentViewSharedBuilder extends IDocumentBuilder {
+  addDocumentId(arg: string | void): IDocumentViewSharedBuilder;
+  addPasscode(arg: string | void): IDocumentViewSharedBuilder;
+  POST(token): Promise<any>
+}
+
+export const DocumentViewShared = (): IDocumentViewSharedBuilder => {
+  const blueprint = {
+    URL: `${DAPI}/view`,
+    BODY: {
+      passcode: '',
+    },
+    addDocumentId: (id) => {
+      blueprint.URL += `/${id}`;
+      return blueprint;
+    },
+    addPasscode: (passcode) => {
+      blueprint.BODY.passcode = passcode;
+      return blueprint;
+    },
+    POST: (token) => getFetch(blueprint.URL).addToken(token).post(blueprint.BODY),
+  };
+
+  return blueprint;
+};
+
+/** Document Unshare */
+interface IDocumentUnshareBuilder extends IDocumentBuilder {
+  addDocumentId(arg: string | void): IDocumentUnshareBuilder;
+  addPasscode(arg: string | void): IDocumentUnshareBuilder;
+  PATCH(token): Promise<any>
+}
+
+export const DocumentUnshareBuilder = (): IDocumentUnshareBuilder => {
+  const blueprint = {
+    URL: `${DAPI}/unshare`,
+    BODY: {
+      passcode: '',
+    },
+    addDocumentId: (id) => {
+      blueprint.URL += `/${id}`;
+      return blueprint;
+    },
+    addPasscode: (passcode) => {
+      blueprint.BODY.passcode = passcode;
+      return blueprint;
+    },
+    PATCH: (token) => getFetch(blueprint.URL).addToken(token).patch(blueprint.BODY),
   };
 
   return blueprint;

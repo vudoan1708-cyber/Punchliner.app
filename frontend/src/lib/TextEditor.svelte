@@ -48,11 +48,16 @@
     return replaceHTMLTags(str);
   };
 
+  const clickFn = (idx) => {
+    controlClicked = false;
+    dispatch('text-click', selectedText[idx]);
+  }
+
   const removeClickEvent = (uuid: string, eventType: string): string => {
     const hiddenElement: Element = previewArea.querySelector(`[data-uuid="${uuid}"]`);
     let strippedValue: string = '';
     if (!!hiddenElement) {
-      hiddenElement.removeEventListener('click', () => { console.warn('REMOVED') });
+      hiddenElement.removeEventListener('click', clickFn);
       strippedValue = strippedString(uuid, eventType);
     }
 
@@ -62,15 +67,10 @@
   const appendClickEvent = () => {
     const newlyCreatedElements: NodeListOf<Element> = document.querySelectorAll('.hide');
 
-      const fn = (idx) => {
-        controlClicked = false;
-        dispatch('text-click', selectedText[idx]);
-      }
-
     if (!!newlyCreatedElements) {
       Array.from(newlyCreatedElements).forEach((element, idx) => {
-        element.removeEventListener('click', fn);
-        element.addEventListener('click', () => { fn(idx); });
+        element.removeEventListener('click', clickFn);
+        element.addEventListener('click', () => { clickFn(idx); });
       });
     }
   };
@@ -207,8 +207,7 @@
       if (!!selection.wasHidden || !selection.text) {
         replaced = removeClickEvent(selection.id, eventType);
         strippedStringAtIndx = i;
-      } else replaced = `<span class="${className}" id="${selection.id}" data-uuid=${selection.id}>${selection.text}</span>`;
-
+      } else replaced = `<span class="${className}" id="${selection.id}" data-uuid="${selection.id}">${selection.text}</span>`;
       // This either stays at one place, or is pushed however many more characters added to the start position
       const leftMost: string = editorArea.value.substring(curSelectionStartPosition >= prevSelectionUpdatedEndPosition
         ? curSelectionStartPosition

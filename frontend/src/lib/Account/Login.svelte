@@ -93,6 +93,8 @@
       </label>
     </div>
 
+    <p class="register_link">Not a member? <a href="/account/register"><u><i>Register your account here.</i></u></a></p>
+
     <div>
       <Button id="register" {disabled} on:click={goToEditor}>Login</Button>
       <Button id="cancel" type="secondary" on:click={goToHomepage}>Cancel</Button>
@@ -141,5 +143,13 @@
     display: flex;
     flex-direction: column;
     gap: var(--margin);
+  }
+
+  p.register_link {
+    position: relative;
+    margin: var(--margin);
+    margin-bottom: calc(var(--margin) * 2);
+    text-align: center;
+    font-size: var(--type-body-size);
   }
 </style>
