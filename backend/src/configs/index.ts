@@ -7,6 +7,10 @@ export default {
   PORT: process.env.PORT || 5000,
   ENV: process.env.NODE_ENV,
   JWT_SECRET: process.env.JWT_SECRET || "",
-  STRIPE_API_KEY: process.env.STRIPE_API_KEY || "",
-  HOST: process.env.HOST || "",
+  DOMAIN: process.env.DOMAIN || "",
+  STRIPE: {
+    API_KEY: process.env.STRIPE_API_KEY || "",
+    PREMIUM_PRODUCT_ID: process.env.STRIPE_PREMIUM_PRODUCT_ID || "",
+    WEBHOOK_ENDPOINT_SECRET: process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET || "",
+  },
 };

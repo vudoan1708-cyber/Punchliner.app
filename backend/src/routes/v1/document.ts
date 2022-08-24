@@ -14,18 +14,18 @@ const router = express.Router();
 
 export const DOCUMENT_ID_PARAM = "documentId";
 
+router.post(
+  "/",
+  schemaValidate(CreateDocumentSchema),
+  DocumentController.createDocument
+);
+
 router.get("/overview", DocumentController.getDocuments);
 
 router.get(
   `/:${DOCUMENT_ID_PARAM}`,
   schemaValidate(GetDocumentByIdSchema),
   DocumentController.getDocumentById
-);
-
-router.post(
-  "/",
-  schemaValidate(CreateDocumentSchema),
-  DocumentController.createDocument
 );
 
 router.patch(

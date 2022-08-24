@@ -37,7 +37,11 @@ export const PassportLocalStrategy = new LocalStrategy(
         );
       }
 
-      return done(undefined, { email: account.email, _id: account._id });
+      return done(undefined, {
+        email: account.email,
+        _id: account._id,
+        stripe_cus_id: account.stripe_cus_id,
+      });
     } catch (error) {
       done(error);
     }
@@ -54,7 +58,11 @@ export const PassportJWTStrategy = new JwtStrategy(
   function (jwtToken, done) {
     return done(
       undefined,
-      { _id: jwtToken.sub, email: jwtToken.username || jwtToken.email },
+      {
+        _id: jwtToken.sub,
+        email: jwtToken.username || jwtToken.email,
+        stripe_cus_id: jwtToken.stripe_cus_id,
+      },
       jwtToken
     );
   }
