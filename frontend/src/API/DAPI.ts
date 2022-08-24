@@ -101,7 +101,7 @@ export const DocumentOverviewBuilder = (): IDocumentOverviewBuilder => {
   const blueprint = {
     URL: `${DAPI}/overview?`,
     addDefaultParams: () => {
-      blueprint.URL = `${DAPI}/overview?page=1&pageSize=3`;
+      blueprint.URL = `${DAPI}/overview?page=1&pageSize=5`;
       return blueprint;
     },
     addPage: (page = 1) => {

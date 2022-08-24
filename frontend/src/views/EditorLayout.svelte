@@ -224,13 +224,13 @@
       documentId = res.data.document._id;
       loadedDocument.loaded = true;
       textEditorDisabled = false;
+      savePrompt = true;
     } catch (ex) {
       error.message = ex.message;
       error.detail = ex.detail;
       textEditorDisabled = true;
     } finally {
       loading = false;
-      savePrompt = true;
     }
   };
 

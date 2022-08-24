@@ -33,34 +33,56 @@
     return pluralise(diffInDays, `${diffInDays} day`);
   };
 
+  // DOM Ref
+  let passcodeRef: HTMLInputElement | void = null;
+
   // Event Handlers
   let passcode: string = null;
   let docToBeShared: Document | void = null;
+  let loading: boolean = false;
   const error: Error = {
     message: '',
     detail: '',
   };
   const shareDocument = async (): Promise<void> => {
     if (!docToBeShared || !passcode) return;
-    const res = await DocumentShareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).POST(sessionId);
-    if (!res.success) {
-      error.message = res.message;
-      error.detail = res.detail;
-      return;
+
+    loading = true;
+    try {
+      const res = await DocumentShareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).POST(sessionId);
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return;
+      }
+      docToBeShared = null;
+      passcode = null;
+    } catch (err) {
+      error.message = err.message;
+      error.detail = err.detail;
+    } finally {
+      loading = false;
     }
-    docToBeShared = null;
-    passcode = null;
   };
   const unshareDocument = async () => {
     if (!docToBeShared || !passcode) return;
-    const res = await DocumentUnshareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).PATCH(sessionId);
-    if (!res.success) {
-      error.message = res.message;
-      error.detail = res.detail;
-      return;
+
+    loading = true;
+    try {
+      const res = await DocumentUnshareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).PATCH(sessionId);
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return;
+      }
+      docToBeShared = null;
+      passcode = null;
+    } catch (err) {
+      error.message = err.message;
+      error.detail = err.detail;
+    } finally {
+      loading = false;
     }
-    docToBeShared = null;
-    passcode = null;
   };
 
   const toggleShareability = (doc: Document): boolean => {
@@ -84,6 +106,11 @@
     })
     docToBeShared = null;
     passcode = null;
+  };
+
+  // Life Cycle
+  $: if (!!passcodeRef) {
+    passcodeRef.focus();
   };
 </script>
 
@@ -150,14 +177,14 @@
       title={`${docToBeShared.isShared ? 'Share' : 'Unshare'} <i>${docToBeShared.title}</i>`}
       style="max-width: 25em; min-height: 5em;"
       backgroundClose
-      on:close={() => { revertShareability(); }}>
+      on:close={() => { revertShareability(); error.message = null; error.detail = null; }}>
       <form class="sharePrompt" on:submit|preventDefault>
         <label for="passcode">
           Passcode
-          <input type="password" required minlength="6" bind:value={passcode} />
+          <input type="password" required minlength="6" bind:value={passcode} bind:this={passcodeRef} />
         </label>
 
-        <Button type="secondary" on:click={() => {
+        <Button type="secondary" working={loading} on:click={() => {
           if (!docToBeShared) return;
           if (docToBeShared.isShared) {
             shareDocument();
