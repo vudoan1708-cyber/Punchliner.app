@@ -14,9 +14,11 @@ import {
   DOCUMENT_UNSHARE_FORBIDDEN_WRONG_PASSCODE,
   DOCUMENT_VIEW_FORBIDDEN,
   DOCUMENT_VIEW_FORBIDDEN_WRONG_PASSCODE,
+  NOT_PREMIUM_USER,
   UNAUTHORIZED,
 } from "../shared/error";
 import DocumentService from "../services/document.service";
+import { AppUserTypeEnum } from "../models/account";
 
 type GetDocumentOverviewRequest = RequestHandlerWithType<any, PaginationOption>;
 
@@ -99,8 +101,16 @@ type CreateDocumentRequest = RequestHandlerWithType<{
 
 const createDocument: CreateDocumentRequest = async (req, res, next) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user._id) {
       throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
+    }
+
+    const numberOfDocuments = await DocumentModel.count({
+      ownerId: req.user._id,
+    });
+
+    if (numberOfDocuments !== 0 && req.user.type !== AppUserTypeEnum.PREMIUM) {
+      throw new ApiError(httpStatus.FORBIDDEN, NOT_PREMIUM_USER, true);
     }
 
     const { content, title } = req.body;

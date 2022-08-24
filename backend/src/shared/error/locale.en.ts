@@ -17,6 +17,8 @@ const ERROR_EN: Record<ErrorCode, string> = {
   PAE013: "You cannot view this document",
   PAE014: "Wrong document's passcode",
   PAE015: "Cannot unshare (Wrong document's passcode)",
+  PAE0077:
+    "You are using a free account. Please upgrade your account for more premium features",
 };
 
 export { ERROR_EN };

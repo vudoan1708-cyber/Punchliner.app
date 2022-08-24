@@ -1,7 +1,7 @@
 import passportLocal from "passport-local";
 import passportJwt from "passport-jwt";
 import httpStatus from "http-status";
-import AccountModel from "../models/account";
+import AccountModel, { AppUserTypeEnum } from "../models/account";
 import ApiError from "../utils/api-error";
 import { INVALID_PASSWORD_ERROR, USER_NOT_FOUND } from "../shared/error";
 import configs from "../configs";
@@ -37,7 +37,11 @@ export const PassportLocalStrategy = new LocalStrategy(
         );
       }
 
-      return done(undefined, { email: account.email, _id: account._id });
+      return done(undefined, {
+        email: account.email,
+        _id: account._id,
+        type: account.type ?? AppUserTypeEnum.NORMAL,
+      });
     } catch (error) {
       done(error);
     }
@@ -54,7 +58,7 @@ export const PassportJWTStrategy = new JwtStrategy(
   function (jwtToken, done) {
     return done(
       undefined,
-      { _id: jwtToken.sub, email: jwtToken.username || jwtToken.email },
+      { _id: jwtToken.sub, email: jwtToken.email, type: jwtToken.type },
       jwtToken
     );
   }
