@@ -1,10 +1,10 @@
 import httpStatus from "http-status";
 import type { Stripe } from "stripe";
 import type { RequestHandlerWithType } from "../shared/request-type";
-import { createResponse } from "../utils/response";
 import ApiError from "../utils/api-error";
-import { UNAUTHORIZED } from "../shared/error";
+import { UNAUTHORIZED, USER_NOT_FOUND } from "../shared/error";
 import StripeVendor from "../vendor/stripe";
+import { CANNOT_CREATE_STRIPE_CHECKOUT_SESSION } from "../shared/error/error.payment";
 
 type PaymentCheckoutRequest = RequestHandlerWithType<any, any>;
 
@@ -18,11 +18,15 @@ const checkout: PaymentCheckoutRequest = async (req, res, next) => {
 
     const session = await StripeVendor.createCheckoutSession(stripe_cus_id);
 
-    res.status(httpStatus.OK).json(
-      createResponse({
-        session,
-      })
-    );
+    if (!session || !session.url) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        CANNOT_CREATE_STRIPE_CHECKOUT_SESSION,
+        true
+      );
+    }
+
+    res.status(httpStatus.TEMPORARY_REDIRECT).redirect(session.url);
   } catch (e) {
     next(e);
   }
@@ -50,6 +54,7 @@ const registerStripeWebhookEvents: RequestHandlerWithType<any, any> = (
         const session = event.data.object;
         // Then define and call a function to handle the event checkout.session.completed
         // TODO: mark user as premium
+        console.log("marked user as PREMIUM");
         break;
       // ... handle other event types
       default:
@@ -64,7 +69,35 @@ const registerStripeWebhookEvents: RequestHandlerWithType<any, any> = (
   response.send();
 };
 
+type PaymentCheckoutSuccessRequest = RequestHandlerWithType<
+  any,
+  { session_id: string }
+>;
+
+const checkoutSuccessHTML: PaymentCheckoutSuccessRequest = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const { session_id } = req.query;
+
+    const customer = await StripeVendor.getCustomerFromSession(session_id);
+
+    if (!customer) {
+      throw new ApiError(httpStatus.NOT_FOUND, USER_NOT_FOUND, true);
+    }
+    res.render("checkout-success", {
+      name: customer.name,
+      email: customer.email,
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
 export default {
   checkout,
+  checkoutSuccessHTML,
   registerStripeWebhookEvents,
 };

@@ -18,10 +18,6 @@ router.use(
 );
 
 // NOTE: JWT-protected routes
-router.use(
-  "/payment",
-  passport.authenticate("jwt", { session: false }),
-  PaymentRoutes
-);
+router.use("/payment", PaymentRoutes);
 
 export default router;

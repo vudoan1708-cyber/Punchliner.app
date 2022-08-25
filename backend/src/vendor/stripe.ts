@@ -26,6 +26,15 @@ const createCheckoutSession = async (
   customer: string,
   price = configs.STRIPE.PREMIUM_PRODUCT_ID
 ) => {
+  if (
+    !configs.STRIPE ||
+    !configs.STRIPE.PREMIUM_PRODUCT_ID ||
+    !configs.STRIPE.CHECKOUT_SUCCESS_URL ||
+    !configs.STRIPE.CHECKOUT_CANCEL_URL
+  ) {
+    throw Error("missing custom Stripe config");
+  }
+
   const session = await Stripe.checkout.sessions.create({
     customer,
     payment_method_types: ["card"],
@@ -39,11 +48,22 @@ const createCheckoutSession = async (
     // subscription_data: {
     //   trial_period_days: 14,
     // },
-    success_url: `${configs.DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${configs.DOMAIN}/failed`,
+    success_url: configs.STRIPE.CHECKOUT_SUCCESS_URL,
+    cancel_url: configs.STRIPE.CHECKOUT_CANCEL_URL,
   });
 
   return session;
+};
+
+// req.query.session_id
+const getCustomerFromSession = async (
+  sessionId: string
+): Promise<stripe.Customer | null> => {
+  const session = await Stripe.checkout.sessions.retrieve(sessionId);
+  if (!session || !session.customer) return null;
+  const customerId = session.customer.toString();
+  const customer = await Stripe.customers.retrieve(customerId);
+  return customer as stripe.Customer | null;
 };
 
 const constructWebhookEvent = (req: Request, sig?: string | string[]) => {
@@ -60,4 +80,5 @@ export default {
   getCustomerByID,
   createCheckoutSession,
   constructWebhookEvent,
+  getCustomerFromSession,
 };

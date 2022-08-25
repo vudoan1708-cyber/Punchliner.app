@@ -11,6 +11,9 @@ import { PassportJWTStrategy, PassportLocalStrategy } from "./configs/passport";
 // NOTE: init app instance
 const app = express();
 
+// NOTE: setup PUG view engine
+app.set("view engine", "pug");
+
 // NOTE: set security HTTP headers
 app.use(helmet());
 
