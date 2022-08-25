@@ -5,5 +5,6 @@ import { BROWSER } from './utility_variables/browsers';
 
 export const ACCOUNTAPI = isDev ? 'http://localhost:3333/v1/auth' : 'v1/auth';
 export const DAPI = isDev ? 'http://localhost:3333/v1/document' : 'v1/document';
+export const PAPI = isDev ? 'http://localhost:3333/v1/payment' : 'v1/payment';
 
 export { PLACEHOLDER, BROWSER };

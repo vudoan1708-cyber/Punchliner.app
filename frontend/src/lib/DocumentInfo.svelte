@@ -177,9 +177,9 @@ import { navigate } from 'svelte-navigator';
     <div class="noDoc">No saved documents to display</div>
   {/if}
 
-  <div class="upgradeMessage">
+  <div class="upgradeMessage" on:click={goToPremium}>
     <Icon name="star" />
-    <u on:click={goToPremium}>Upgrade to a Premium membership now</u>
+    <u>Upgrade to a Premium membership now</u>
   </div>
 
   {#if !!docToBeShared}
@@ -277,15 +277,15 @@ import { navigate } from 'svelte-navigator';
   }
 
   .upgradeMessage {
+    position: relative;
+    width: fit-content;
     display: flex;
-    justify-content: center;
     align-items: center;
     gap: calc(var(--margin) / 2);
     font-size: calc(var(--type-body-size) - var(--border-width));
-    margin-top: calc(var(--margin) * 5);
     opacity: .7;
-  }
-  .upgradeMessage u {
+    margin: 0 auto;
+    margin-top: calc(var(--margin) * 5);
     cursor: pointer;
   }
 </style>

@@ -35,15 +35,32 @@
 
 <!-- <template> -->
   <section id="Home">
-    <h2>Welcome to Punchliner</h2>
+    <header>
+      <h2>Welcome to Punchliner</h2>
+      <p class="quote"><i>"Punchliner is the only joke writing app that blurs your punchlines"</i></p>
+    </header>
+
     <Button on:click={goToRegisterScreen}>Register for free and start writing</Button>
     <p class="login_link">Already a member? <a href="/account/login"><u><i>Sign in.</i></u></a></p>
+    
+    <div id="demo">
+      <p style="margin: var(--margin); font-size: var(--type-body-size); font-style: italic;">
+        Have a look through our demo video to have a clue what our app is about
+      </p>
+      <video width="320" controls>
+        <track kind="captions">
+        <source src="src/assets/demo/jokeapp.mov" type="video/mp4">
+        <source src="src/assets/demo/jokeapp.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+
     <br /><br />
     <div class="features">
       <div>
         <h3>Shareable documents with password protection</h3>
         <p>Written documents can be shared using a secure link and password protection.
-          Only users who have a Punchliner's account and the shared passcode can get access to the shared documents.</p>
+          Only users who have the unique link and the shared password from the owner can get access to the shared documents.</p>
       </div>
       <div>
         <h3>Safe and secure automatic backups</h3>
@@ -98,6 +115,24 @@
     align-items: center;
     margin-top: calc(var(--margin) * 3);
     max-width: 900px;
+  }
+
+  header {
+    text-align: center;
+  }
+
+  header .quote {
+    margin: calc(var(--margin) * 2) 0 calc(var(--margin) * 5) 0;
+  }
+
+  #demo {
+    margin-top: calc(var(--margin) * 2);
+    text-align: center;
+  }
+
+  #demo video {
+    border: var(--border-width) solid var(--color-primary-light);
+    border-radius: var(--border-radius);
   }
 
   div.features {
