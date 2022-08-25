@@ -1,7 +1,7 @@
 import passportLocal from "passport-local";
 import passportJwt from "passport-jwt";
 import httpStatus from "http-status";
-import AccountModel from "../models/account";
+import AccountModel, { AppUserTypeEnum } from "../models/account";
 import ApiError from "../utils/api-error";
 import { INVALID_PASSWORD_ERROR, USER_NOT_FOUND } from "../shared/error";
 import configs from "../configs";
@@ -40,6 +40,7 @@ export const PassportLocalStrategy = new LocalStrategy(
       return done(undefined, {
         email: account.email,
         _id: account._id,
+        type: account.type ?? AppUserTypeEnum.NORMAL,
         stripe_cus_id: account.stripe_cus_id,
       });
     } catch (error) {
@@ -60,7 +61,8 @@ export const PassportJWTStrategy = new JwtStrategy(
       undefined,
       {
         _id: jwtToken.sub,
-        email: jwtToken.username || jwtToken.email,
+        email: jwtToken.email,
+        type: jwtToken.type,
         stripe_cus_id: jwtToken.stripe_cus_id,
       },
       jwtToken

@@ -1,8 +1,9 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
 import { ACCOUNT_MODEL_NAME, SALT_WORK_FACTOR } from "./account.constant";
-import type {
+import {
   AccountModel as AccountModelType,
+  AppUserTypeEnum,
   IAccountDoc,
   IAccountMethods,
 } from "./account.type";
@@ -25,6 +26,11 @@ const AccountSchema = new Schema<
     stripe_cus_id: {
       type: String,
       required: true,
+    },
+    type: {
+      type: String,
+      enum: [AppUserTypeEnum.PREMIUM, AppUserTypeEnum.NORMAL],
+      default: AppUserTypeEnum.NORMAL,
     },
   },
   {
