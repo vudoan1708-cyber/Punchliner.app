@@ -14,6 +14,7 @@
   // Type
   import type { Document } from '../types/Document';
   import type { Error } from '../types/Error';
+import { navigate } from 'svelte-navigator';
 
   export let sessionId: string | void = null;
   export let allDocs: Array<Document> | void = null;
@@ -108,6 +109,10 @@
     passcode = null;
   };
 
+  const goToPremium = () => {
+    navigate('/premium');
+  };
+
   // Life Cycle
   $: if (!!passcodeRef) {
     passcodeRef.focus();
@@ -171,6 +176,11 @@
   {:else}
     <div class="noDoc">No saved documents to display</div>
   {/if}
+
+  <div class="upgradeMessage">
+    <Icon name="star" />
+    <u on:click={goToPremium}>Upgrade to a Premium membership now</u>
+  </div>
 
   {#if !!docToBeShared}
     <Modal
@@ -264,5 +274,18 @@
     margin: var(--margin) var(--margin) 0 0;
     font-size: calc(var(--type-body-size) + var(--border-width));
     color: var(--color-error-foreground);
+  }
+
+  .upgradeMessage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: calc(var(--margin) / 2);
+    font-size: calc(var(--type-body-size) - var(--border-width));
+    margin-top: calc(var(--margin) * 5);
+    opacity: .7;
+  }
+  .upgradeMessage u {
+    cursor: pointer;
   }
 </style>
