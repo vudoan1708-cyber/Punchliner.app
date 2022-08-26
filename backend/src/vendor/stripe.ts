@@ -1,4 +1,3 @@
-import { Request } from "express";
 import stripe from "stripe";
 import configs from "../configs";
 
@@ -66,11 +65,10 @@ const getCustomerFromSession = async (
   return customer as stripe.Customer | null;
 };
 
-const constructWebhookEvent = (req: Request, sig?: string | string[]) => {
-  if (!sig || !configs?.STRIPE?.WEBHOOK_ENDPOINT_SECRET) return null;
+const constructWebhookEvent = (rawRequestBody: Buffer, sig?: string) => {
   return Stripe.webhooks.constructEvent(
-    req.body,
-    sig,
+    rawRequestBody,
+    sig ?? "",
     configs.STRIPE.WEBHOOK_ENDPOINT_SECRET
   );
 };

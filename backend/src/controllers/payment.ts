@@ -1,3 +1,4 @@
+import stripe from "stripe";
 import httpStatus from "http-status";
 import type { Stripe } from "stripe";
 import type { RequestHandlerWithType } from "../shared/request-type";
@@ -5,6 +6,7 @@ import ApiError from "../utils/api-error";
 import { UNAUTHORIZED, USER_NOT_FOUND } from "../shared/error";
 import StripeVendor from "../vendor/stripe";
 import { CANNOT_CREATE_STRIPE_CHECKOUT_SESSION } from "../shared/error/error.payment";
+import type { RequestHandler } from "express";
 
 type PaymentCheckoutRequest = RequestHandlerWithType<any, any>;
 
@@ -32,17 +34,14 @@ const checkout: PaymentCheckoutRequest = async (req, res, next) => {
   }
 };
 
-const registerStripeWebhookEvents: RequestHandlerWithType<any, any> = (
-  request,
-  response
-) => {
+const registerStripeWebhookEvents: RequestHandler = (request, response) => {
   const sig = request.headers["stripe-signature"];
-
   let event: Stripe.Event | null = null;
 
   try {
-    event = StripeVendor.constructWebhookEvent(request.body, sig);
+    event = StripeVendor.constructWebhookEvent(request.body, sig as any);
   } catch (err: Error | any) {
+    console.log(`Webhook Error: ${err.message}`);
     response.status(400).send(`Webhook Error: ${err.message}`);
     return;
   }
@@ -54,11 +53,11 @@ const registerStripeWebhookEvents: RequestHandlerWithType<any, any> = (
         const session = event.data.object;
         // Then define and call a function to handle the event checkout.session.completed
         // TODO: mark user as premium
-        console.log("marked user as PREMIUM");
+        console.log("marked user as PREMIUM: ", session);
         break;
       // ... handle other event types
       default:
-        console.log(`Unhandled Stripe webhook event type ${event.type}`);
+      // console.log(`Unhandled Stripe webhook event type ${event.type}`);
     }
   } else {
     response.status(500).send("Webhook Error: cannot construct webhook event");

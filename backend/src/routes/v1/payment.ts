@@ -10,12 +10,6 @@ router.get(
   PaymentController.checkout
 );
 
-router.post(
-  "/webhook",
-  express.raw({ type: "application/json" }),
-  PaymentController.registerStripeWebhookEvents
-);
-
 router.get("/checkout/success", PaymentController.checkoutSuccessHTML);
 
 export default router;
