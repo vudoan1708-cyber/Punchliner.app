@@ -1,12 +1,17 @@
 import jwt from "jsonwebtoken";
 import configs from "../configs";
+import type { Request } from "express";
 
-function signJwtToken(email: string, _id: string): string {
+type UserPayload = Pick<Request, "user">;
+
+function signJwtToken({ user }: UserPayload): string {
   return jwt.sign(
     {
-      username: email,
-      _id: _id,
-      sub: _id,
+      _id: user?._id,
+      sub: user?._id,
+      email: user?.email,
+      type: user?.type,
+      stripe_cus_id: user?.stripe_cus_id,
     },
     configs.JWT_SECRET,
     {
