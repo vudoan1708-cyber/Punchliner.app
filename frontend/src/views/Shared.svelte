@@ -93,7 +93,7 @@
 </script>
 
 <!-- <template> -->
-  <div id="shared" class:blured={passcode.times > 0}>
+  <div id="Shared" class:blured={passcode.times > 0}>
     <header class="appLogo" title="Back to Homepage" on:click={goToHomepage}>
       <img src={punchlinerappLogo} alt="app logo" />
       <h2>unchliner app</h2>
@@ -146,7 +146,7 @@
 <!-- </template> -->
 
 <style scoped>
-  #shared.blured {
+  #Shared.blured {
     filter: blur(5px);
   }
 

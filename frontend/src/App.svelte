@@ -6,6 +6,7 @@
 	import EditorLayout from './views/EditorLayout.svelte';
 	import Shared from './views/Shared.svelte';
   import Premium from './views/Premium.svelte';
+  import SuccessfulCheckout from './views/SuccessfulCheckout.svelte';
 	import NotFound from './views/NotFound.svelte';
 
   const fallbackRoute = (pathname) => {
@@ -48,6 +49,10 @@
 
     <Route path="premium" meta="{{ name: 'premium' }}" primary={false}>
       <Premium />
+    </Route>
+    
+    <Route path="successful-checkout" meta="{{ name: 'successful payment checkout' }}" primary={false}>
+      <SuccessfulCheckout />
     </Route>
 
     <Route path="*" meta="{{ name: 'not found' }}">

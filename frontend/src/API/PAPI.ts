@@ -3,16 +3,17 @@ import { PAPI } from '../helper/constants';
 
 /** Document Save */
 interface IPaymentBuilder {
+  URL: string;
 }
 
-export const MakePaymentBuilder = (): IPaymentBuilder => {
+interface IPaymentCheckoutBuilder extends IPaymentBuilder {
+  GET(arg: string | void): Promise<any>
+}
+
+export const PaymentCheckoutBuilder = (): IPaymentCheckoutBuilder => {
   const blueprint = {
-    URL: PAPI,
-    BODY: {
-      title: '',
-      content: '',
-    },
-    PATCH: (token) => getFetch(blueprint.URL).addToken(token).patch(blueprint.BODY),
+    URL: `${PAPI}/checkout`,
+    GET: (token) => getFetch(blueprint.URL).addToken(token).get(),
   };
 
   return blueprint;

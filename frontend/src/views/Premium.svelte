@@ -5,15 +5,19 @@
   import Icon from "../components/Icon/Icon.svelte";
 
   // API
-  import { MakePaymentBuilder } from '../API/PAPI';
+  import { PaymentCheckoutBuilder } from '../API/PAPI';
+
+  // Utility
+  import { cookiestore } from "../helper/storage";
 
   // Event Handler
   const goToHomepage = () => {
     navigate('/');
   };
 
-  const redirectToStripe = () => {
-    console.log('Go To Stripe');
+  const redirectToStripe = async () => {
+    const token = cookiestore.get('session')
+    await PaymentCheckoutBuilder().GET(token);
   };
 </script>
 
