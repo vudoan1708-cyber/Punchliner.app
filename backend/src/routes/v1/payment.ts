@@ -12,6 +12,6 @@ router.get(
   PaymentController.checkout
 );
 
-router.get("/checkout/success", PaymentController.checkoutSuccessHTML);
+// router.get("/checkout/success", PaymentController.checkoutSuccessHTML);
 
 export default router;

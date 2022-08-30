@@ -1,6 +1,6 @@
 import httpStatus from "http-status";
 import ApiError from "../utils/api-error";
-import { UNAUTHORIZED, USER_NOT_FOUND } from "../shared/error";
+import { UNAUTHORIZED } from "../shared/error";
 import StripeVendor from "../vendor/stripe";
 import { CANNOT_CREATE_STRIPE_CHECKOUT_SESSION } from "../shared/error/error.payment";
 import AccountModel, { AppUserTypeEnum } from "../models/account";
@@ -94,35 +94,7 @@ const registerStripeWebhookEvents: RequestHandler = async (
   response.send();
 };
 
-type PaymentCheckoutSuccessRequest = RequestHandlerWithType<
-  any,
-  { session_id: string }
->;
-
-const checkoutSuccessHTML: PaymentCheckoutSuccessRequest = async (
-  req,
-  res,
-  next
-) => {
-  try {
-    const { session_id } = req.query;
-
-    const customer = await StripeVendor.getCustomerFromSession(session_id);
-
-    if (!customer) {
-      throw new ApiError(httpStatus.NOT_FOUND, USER_NOT_FOUND, true);
-    }
-    res.render("checkout-success", {
-      name: customer.name,
-      email: customer.email,
-    });
-  } catch (e) {
-    next(e);
-  }
-};
-
 export default {
   checkout,
-  checkoutSuccessHTML,
   registerStripeWebhookEvents,
 };
