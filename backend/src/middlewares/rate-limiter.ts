@@ -3,9 +3,16 @@ import configs from "../configs";
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
-  max: 20,
+  max: 20, // 20 per 15 minutes
   skipSuccessfulRequests: true,
   skip: (request, response) => configs.ENV !== "production", // NOTE: only enable on production
 });
 
-export { authLimiter };
+const paymentLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 min
+  max: 1, // 1 per 5 minutes
+  skipSuccessfulRequests: true,
+  skip: (request, response) => configs.ENV !== "production", // NOTE: only enable on production
+});
+
+export { authLimiter, paymentLimiter };
