@@ -10,8 +10,8 @@ const authLimiter = rateLimit({
 
 const paymentLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 min
-  max: 1, // 1 per 5 minutes
-  skipSuccessfulRequests: true,
+  max: 2, // 2 per 5 minutes
+  skipSuccessfulRequests: false,
   skip: (request, response) => configs.ENV !== "production", // NOTE: only enable on production
 });
 
