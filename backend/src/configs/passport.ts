@@ -41,6 +41,7 @@ export const PassportLocalStrategy = new LocalStrategy(
         email: account.email,
         _id: account._id,
         type: account.type ?? AppUserTypeEnum.NORMAL,
+        stripe_cus_id: account.stripe_cus_id,
       });
     } catch (error) {
       done(error);
@@ -58,7 +59,12 @@ export const PassportJWTStrategy = new JwtStrategy(
   function (jwtToken, done) {
     return done(
       undefined,
-      { _id: jwtToken.sub, email: jwtToken.email, type: jwtToken.type },
+      {
+        _id: jwtToken.sub,
+        email: jwtToken.email,
+        type: jwtToken.type,
+        stripe_cus_id: jwtToken.stripe_cus_id,
+      },
       jwtToken
     );
   }

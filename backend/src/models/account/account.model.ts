@@ -23,6 +23,10 @@ const AccountSchema = new Schema<
       type: String,
       required: true,
     },
+    stripe_cus_id: {
+      type: String,
+      required: true,
+    },
     type: {
       type: String,
       enum: [AppUserTypeEnum.PREMIUM, AppUserTypeEnum.NORMAL],

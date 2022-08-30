@@ -5,6 +5,7 @@ import { RequestHandlerWithType } from "../shared/request-type";
 import ApiError from "../utils/api-error";
 import { createResponse } from "../utils/response";
 import AuthService from "../services/auth.service";
+import Stripe from "../vendor/stripe";
 
 const login: RequestHandlerWithType<{
   email: string;
@@ -17,7 +18,7 @@ const login: RequestHandlerWithType<{
 
     const user = req.user;
 
-    const token = AuthService.signJwtToken(user.email, user._id);
+    const token = AuthService.signJwtToken({ user: req.user });
 
     res.status(200).send(createResponse({ user, bearer: token }));
   } catch (error) {
@@ -33,27 +34,45 @@ const register: RequestHandlerWithType<{
   try {
     const { email, password } = req.body;
 
-    const existed = await AccountModel.findOne({ email });
+    const existedAccount = await AccountModel.findOne({ email });
 
-    if (existed) {
+    if (existedAccount) {
       throw new ApiError(httpStatus.CONFLICT, USER_ALREADY_EXISTED, true);
+    }
+
+    // NOTE: create Stripe customer
+    const customer = await Stripe.addNewCustomer(email);
+
+    if (!customer) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        USER_ALREADY_EXISTED,
+        false
+      );
     }
 
     const newAccount = new AccountModel({
       email,
       password,
+      stripe_cus_id: customer.id,
     });
 
-    await newAccount.save();
+    const updatedAccount = await newAccount.save();
 
-    newAccount.password = "";
+    updatedAccount.password = "";
 
-    const token = AuthService.signJwtToken(
-      newAccount.email,
-      newAccount._id.toString()
-    );
+    const tokenPayload = {
+      _id: updatedAccount._id.toString(),
+      email: updatedAccount.email,
+      type: updatedAccount.type,
+      stripe_cus_id: updatedAccount.stripe_cus_id,
+    };
 
-    res.status(201).json(createResponse({ user: newAccount, bearer: token }));
+    const token = AuthService.signJwtToken({ user: tokenPayload });
+
+    res
+      .status(201)
+      .json(createResponse({ user: updatedAccount, bearer: token }));
   } catch (e) {
     next(e);
   }

@@ -8,6 +8,7 @@ declare global {
     export interface User {
       _id: string;
       email: string;
+      stripe_cus_id: string;
       type: AppUserTypeEnum;
     }
   }

@@ -3,6 +3,7 @@ import passport from "passport";
 import { authLimiter } from "../../middlewares/rate-limiter";
 import AuthRoutes from "./auth";
 import DocumentRoutes from "./document";
+import PaymentRoutes from "./payment";
 
 const router = express.Router();
 
@@ -15,5 +16,8 @@ router.use(
   passport.authenticate("jwt", { session: false }),
   DocumentRoutes
 );
+
+// NOTE: JWT-protected routes
+router.use("/payment", PaymentRoutes);
 
 export default router;
