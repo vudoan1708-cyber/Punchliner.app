@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "export NODE_ENV=production && node dist/index.js",
-    "dev": "tsnd --respawn src/index.ts"
+    "dev": "tsnd --respawn src/index.ts",
+    "build": "rimraf ./dist && tsc"
   },
   "keywords": [
     "word",
@@ -23,6 +24,7 @@
     "@types/passport": "^1.0.10",
     "@types/passport-jwt": "^3.0.6",
     "@types/passport-local": "^1.0.34",
+    "rimraf": "^3.0.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^4.7.4"
   },
@@ -41,7 +43,6 @@
     "jsonwebtoken": "^8.5.1",
     "memorystore": "^1.6.7",
     "mongoose": "^6.5.1",
-    "monk": "^7.3.4",
     "node-cache": "^5.1.2",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
