@@ -30,9 +30,12 @@
     const token = cookiestore.get('session');
     try {
       const res = await PaymentCheckoutBuilder().GET(token);
-      if (res.success) return;
+      if (!res.success) {
+        error.message = res.message;
+        return;
+      };
 
-      error.message = res.message;
+      window.location.href = res.data;
     } catch (err) {
       error.message = err.message;
       error.detail = err.detail;

@@ -1,5 +1,6 @@
 <script lang="ts">
   import 'tippy.js/animations/scale.css';
+  import { navigate } from 'svelte-navigator';
 
   import { createEventDispatcher } from 'svelte';
 
@@ -8,13 +9,16 @@
   import ToolTip from '../components/ToolTip.svelte';
   import Icon from '../components/Icon/Icon.svelte';
 
+  // Utility
+  import { cookiestore } from '../helper/storage';
+  import { USER_TYPE } from '../helper/constants';
+
   // API
   import { DocumentShareBuilder, DocumentUnshareBuilder } from '../API/DAPI';
 
   // Type
   import type { Document } from '../types/Document';
   import type { Error } from '../types/Error';
-import { navigate } from 'svelte-navigator';
 
   export let sessionId: string | void = null;
   export let allDocs: Array<Document> | void = null;
@@ -109,6 +113,7 @@ import { navigate } from 'svelte-navigator';
     passcode = null;
   };
 
+  let premiumUser: boolean = cookiestore.get('premium') === USER_TYPE.PREMIUM;
   const goToPremium = () => {
     navigate('/premium');
   };
@@ -177,10 +182,12 @@ import { navigate } from 'svelte-navigator';
     <div class="noDoc">No saved documents to display</div>
   {/if}
 
-  <div class="upgradeMessage" on:click={goToPremium}>
-    <Icon name="star" />
-    <u>Upgrade to a Premium membership now</u>
-  </div>
+  {#if !premiumUser}
+    <div class="upgradeMessage" on:click={goToPremium}>
+      <Icon name="star" />
+      <u>Upgrade to a Premium membership now</u>
+    </div>
+  {/if}
 
   {#if !!docToBeShared}
     <Modal

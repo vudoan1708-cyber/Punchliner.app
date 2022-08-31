@@ -35,6 +35,7 @@
     let bearer: string|null = null;
     let userId: string|null = null;
     let userEmail: string|null = null;
+    let userType: string|null = null;
 
     if (disabled || password.length < passwordRef.minLength) return;
 
@@ -53,9 +54,11 @@
       ({ bearer } = response.data);
       userId = response.data.user._id;
       userEmail = response.data.user.email;
+      userType = response.data.user.type;
       cookiestore.set({ name: 'session', value: bearer });
       cookiestore.set({ name: 'userId', value: userId });
       cookiestore.set({ name: 'userEmail', value: userEmail });
+      cookiestore.set({ name: 'premium', value: userType });
 
       navigate('/editor', { replace: false });
     } finally {
