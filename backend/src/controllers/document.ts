@@ -157,7 +157,7 @@ const getDocumentById: GetDocumentRequest = async (req, res, next) => {
       throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
     }
 
-    const isOwner = req.user._id === documentDetail.ownerId.toString();
+    const isOwner = req.user?._id === documentDetail.ownerId.toString();
 
     if (!isOwner) {
       throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
@@ -231,10 +231,6 @@ type CanViewDocumentRequest = RequestHandlerWithType<
 
 const canViewDocument: CanViewDocumentRequest = async (req, res, next) => {
   try {
-    if (!req.user) {
-      throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
-    }
-
     const { documentId } = req.params;
 
     const { passcode } = req.body;
@@ -248,7 +244,7 @@ const canViewDocument: CanViewDocumentRequest = async (req, res, next) => {
       throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
     }
 
-    const isOwner = req.user._id === documentDetail.ownerId.toString();
+    const isOwner = req.user?._id === documentDetail.ownerId.toString();
 
     if (!documentDetail.isShared && !isOwner) {
       throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
@@ -256,7 +252,7 @@ const canViewDocument: CanViewDocumentRequest = async (req, res, next) => {
 
     const document = await DocumentService.canUserViewDocument(
       documentDetail,
-      req.user._id,
+      req.user?._id,
       passcode
     );
 
