@@ -4,6 +4,7 @@ import { UNAUTHORIZED } from "../shared/error";
 import StripeVendor from "../vendor/stripe";
 import { CANNOT_CREATE_STRIPE_CHECKOUT_SESSION } from "../shared/error/error.payment";
 import AccountModel, { AppUserTypeEnum } from "../models/account";
+import CacheManager from "../configs/cache";
 import type { Stripe } from "stripe";
 import type { RequestHandler } from "express";
 import type { RequestHandlerWithType } from "../shared/request-type";
@@ -24,6 +25,7 @@ const checkout: PaymentCheckoutRequest = async (req, res, next) => {
         true
       );
     }
+
     res.status(httpStatus.TEMPORARY_REDIRECT).redirect(session.url);
   } catch (e) {
     next(e);
@@ -50,14 +52,18 @@ const registerStripeWebhookEvents: RequestHandler = async (
       switch (event.type) {
         case "payment_intent.succeeded": {
           const raw = event.data.object;
+
           const paymentIntent = raw as Stripe.PaymentIntent;
+
           const stripeCusId =
             typeof paymentIntent.customer === "string"
               ? paymentIntent.customer
               : paymentIntent.customer?.id;
-          await AccountModel.findOneAndUpdate(
+
+          const updatedAccount = await AccountModel.findOneAndUpdate(
             {
               stripe_cus_id: stripeCusId,
+              type: AppUserTypeEnum.NORMAL,
             },
             {
               $set: {
@@ -65,6 +71,12 @@ const registerStripeWebhookEvents: RequestHandler = async (
               },
             }
           );
+
+          // NOTE: force user logout
+          if (updatedAccount) {
+            CacheManager.removeJWT(updatedAccount._id.toString());
+          }
+
           break;
         }
       }

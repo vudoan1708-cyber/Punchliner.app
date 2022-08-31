@@ -11,6 +11,7 @@ const ERROR_EN: Record<ErrorCode, string> = {
   PAE007: "Cannot register with this email",
   PAE008:
     "You are using a free account. Please upgrade your account for more premium features",
+  PAE009: "You can login on ONE device only.",
   PAE100: "Invalid document id",
   PAE101: "Title for a document is required",
   PAE102: "Invalid passcode (minimum 6 characters)",
