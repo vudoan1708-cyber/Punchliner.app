@@ -12,9 +12,9 @@ type NullableDocumentResponse =
 function countContentWords(content?: string): number {
   try {
     if (!content) return 1;
-    // const refinedContent = content?.replaceAll(/\\/g, "");
-    const $ = load(content);
-    const innerText = $.text()?.replaceAll(/\s/g, "");
+    const safeWrapperContent = `<div>${content}</div>`;
+    const $ = load(safeWrapperContent);
+    const innerText = $.text();
     return innerText?.length ?? 1;
   } catch (e) {
     console.error("count word error:", e);
