@@ -162,7 +162,7 @@
                   title={doc.isShared ? 'This document is shared' : 'This document is not shared'}
                   style="cursor: pointer;"
                   on:click|stopPropagation={() => { doc.isShared = toggleShareability(doc); }}>
-                  <Icon name={doc.isShared ? 'unlock' : 'lock'} />
+                  <Icon name={doc.isShared ? 'share' : 'hidden'} />
                 </span>
                 {#if doc.isShared}
                   <span
