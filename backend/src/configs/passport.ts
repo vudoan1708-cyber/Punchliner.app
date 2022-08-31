@@ -1,10 +1,13 @@
 import passportLocal from "passport-local";
 import passportJwt from "passport-jwt";
 import httpStatus from "http-status";
+import CacheManager from "../configs/cache";
+import { UNAUTHORIZED } from "../shared/error";
 import AccountModel, { AppUserTypeEnum } from "../models/account";
 import ApiError from "../utils/api-error";
 import { INVALID_PASSWORD_ERROR, USER_NOT_FOUND } from "../shared/error";
 import configs from "../configs";
+import { Request } from "express";
 
 const LocalStrategy = passportLocal.Strategy;
 const JwtStrategy = passportJwt.Strategy;
@@ -41,6 +44,7 @@ export const PassportLocalStrategy = new LocalStrategy(
         email: account.email,
         _id: account._id,
         type: account.type ?? AppUserTypeEnum.NORMAL,
+        stripe_cus_id: account.stripe_cus_id,
       });
     } catch (error) {
       done(error);
@@ -52,14 +56,25 @@ export const PassportJWTStrategy = new JwtStrategy(
   {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: configs.JWT_SECRET,
+    passReqToCallback: true,
     // audience: "",
     // issuer: "",
   },
-  function (jwtToken, done) {
+  function (req: Request, payload: any, done: any) {
+    const bearer = req.headers["authorization"]?.split("Bearer ")?.[1];
+    const hasJWT = CacheManager.hasJWT(payload.sub, bearer as string);
+    if (!hasJWT) {
+      return done(new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true));
+    }
     return done(
       undefined,
-      { _id: jwtToken.sub, email: jwtToken.email, type: jwtToken.type },
-      jwtToken
+      {
+        _id: payload.sub,
+        email: payload.email,
+        type: payload.type,
+        stripe_cus_id: payload.stripe_cus_id,
+      },
+      payload
     );
   }
 );

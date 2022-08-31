@@ -1,0 +1,4 @@
+export const JWT_EXPIRATION_IN_SECOND = 60 * 60 * 24 * 3; // 3 days
+
+export const JWT_EXPIRATION_IN_MS = 1000 * JWT_EXPIRATION_IN_SECOND;
+0;

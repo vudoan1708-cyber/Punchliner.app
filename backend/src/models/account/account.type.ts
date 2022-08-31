@@ -8,6 +8,7 @@ interface IAccountDoc {
   type: AppUserTypeEnum;
   email: string;
   password: string;
+  stripe_cus_id: string;
 }
 
 interface IAccountMethods {
