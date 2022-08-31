@@ -24,7 +24,7 @@ function countContentWords(content?: string): number {
 
 async function canUserViewDocument(
   document: NullableDocumentResponse,
-  userId: string,
+  userId?: string,
   passcode?: string
 ): Promise<NullableDocumentResponse> {
   try {
