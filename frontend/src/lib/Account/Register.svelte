@@ -3,6 +3,7 @@
 
   import Button from '../../components/Button.svelte';
   import Loading from '../../components/Loading.svelte';
+  import Modal from '../../components/Modal.svelte';
 
   // API
   import { RegisterBuilder } from '../../API/Account';
@@ -10,6 +11,9 @@
   // Utilities
   import { cookiestore } from '../../helper/storage';
   import { goToHomepage } from '../../helper/utilities';
+
+  // Type
+  import type { Error } from '../../types/Error';
 
   let email: string|null = null;
   let password: string|null = null;
@@ -20,6 +24,11 @@
   let confirmRef: HTMLInputElement|null = null;
 
   let loading: boolean = false;
+
+  const error: Error = {
+    message: '',
+    detail: '',
+  }
 
   // Event Handler
   const goToLoginScreen = async (): Promise<void> => {
@@ -33,7 +42,11 @@
       const response = await RegisterBuilder()
         .addRequestBody({ email, password, confirm })
         .POST();
-      if (!response.success) return;
+      if (!response.success) {
+        error.message = response.message;
+        error.detail = response.detail;
+        return;
+      };
 
       ({ bearer } = response.data);
       cookiestore.set({ name: 'session', value: bearer });
@@ -41,7 +54,8 @@
       const message = 'Congratulations! You have just created a new account. \nPlease login using the newly created credentials';
       navigate(`/account/login?message=${encodeURIComponent(message)}`, { replace: false });
     } catch (err) {
-      console.error(err);
+      error.message = err.message;
+      error.detail = err.detail;
     } finally {
       loading = false;
     }
@@ -91,6 +105,16 @@
       <Loading />
     {/if}
   </form>
+
+  {#if !!error.message || !!error.detail}
+    <Modal
+      title="Message"
+      style="min-height: 6em;"
+      backgroundClose
+      on:close={() => { error.message = null; error.detail = null; }}>
+      <div>{error.message}</div>
+    </Modal>
+  {/if}
 <!-- </template> -->
 
 <style>

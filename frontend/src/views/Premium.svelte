@@ -2,6 +2,8 @@
   import { navigate } from "svelte-navigator";
 
   import Button from "../components/Button.svelte";
+  import Modal from "../components/Modal.svelte";
+  import Loading from "../components/Loading.svelte";
   import Icon from "../components/Icon/Icon.svelte";
 
   // API
@@ -10,14 +12,33 @@
   // Utility
   import { cookiestore } from "../helper/storage";
 
+  // Type
+  import type { Error } from '../types/Error';
+
   // Event Handler
   const goToHomepage = () => {
     navigate('/');
   };
 
+  const error: Error = {
+    message: '',
+    detail: '',
+  }
+  let loading: boolean = false;
   const redirectToStripe = async () => {
-    const token = cookiestore.get('session')
-    await PaymentCheckoutBuilder().GET(token);
+    loading = true;
+    const token = cookiestore.get('session');
+    try {
+      const res = await PaymentCheckoutBuilder().GET(token);
+      if (res.success) return;
+
+      error.message = res.message;
+    } catch (err) {
+      error.message = err.message;
+      error.detail = err.detail;
+    } finally {
+      loading = false;
+    }
   };
 </script>
 
@@ -58,6 +79,20 @@
       </div>
     </div>
   </section>
+
+  {#if loading}
+    <Loading />
+  {/if}
+
+  {#if !!error.message || !!error.detail}
+    <Modal
+      title="Error"
+      style="min-height: 5em;"
+      backgroundClose
+      on:close={() => { error.message = ''; error.detail = ''; }}>
+      <div>{error.message}</div>
+    </Modal>
+  {/if}
 <!-- </template> -->
 
 <style>
