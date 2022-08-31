@@ -26,7 +26,7 @@ const checkout: PaymentCheckoutRequest = async (req, res, next) => {
       );
     }
 
-    res.status(httpStatus.TEMPORARY_REDIRECT).redirect(session.url);
+    res.status(httpStatus.OK).json({ success: true, data: session.url });
   } catch (e) {
     next(e);
   }
