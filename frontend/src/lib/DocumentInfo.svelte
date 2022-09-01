@@ -1,5 +1,6 @@
 <script lang="ts">
   import 'tippy.js/animations/scale.css';
+  import { navigate } from 'svelte-navigator';
 
   import { createEventDispatcher } from 'svelte';
 
@@ -7,6 +8,10 @@
   import Modal from '../components/Modal.svelte';
   import ToolTip from '../components/ToolTip.svelte';
   import Icon from '../components/Icon/Icon.svelte';
+
+  // Utility
+  import { cookiestore } from '../helper/storage';
+  import { USER_TYPE } from '../helper/constants';
 
   // API
   import { DocumentShareBuilder, DocumentUnshareBuilder } from '../API/DAPI';
@@ -33,34 +38,56 @@
     return pluralise(diffInDays, `${diffInDays} day`);
   };
 
+  // DOM Ref
+  let passcodeRef: HTMLInputElement | void = null;
+
   // Event Handlers
   let passcode: string = null;
   let docToBeShared: Document | void = null;
+  let loading: boolean = false;
   const error: Error = {
     message: '',
     detail: '',
   };
   const shareDocument = async (): Promise<void> => {
     if (!docToBeShared || !passcode) return;
-    const res = await DocumentShareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).POST(sessionId);
-    if (!res.success) {
-      error.message = res.message;
-      error.detail = res.detail;
-      return;
+
+    loading = true;
+    try {
+      const res = await DocumentShareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).POST(sessionId);
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return;
+      }
+      docToBeShared = null;
+      passcode = null;
+    } catch (err) {
+      error.message = err.message;
+      error.detail = err.detail;
+    } finally {
+      loading = false;
     }
-    docToBeShared = null;
-    passcode = null;
   };
   const unshareDocument = async () => {
     if (!docToBeShared || !passcode) return;
-    const res = await DocumentUnshareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).PATCH(sessionId);
-    if (!res.success) {
-      error.message = res.message;
-      error.detail = res.detail;
-      return;
+
+    loading = true;
+    try {
+      const res = await DocumentUnshareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).PATCH(sessionId);
+      if (!res.success) {
+        error.message = res.message;
+        error.detail = res.detail;
+        return;
+      }
+      docToBeShared = null;
+      passcode = null;
+    } catch (err) {
+      error.message = err.message;
+      error.detail = err.detail;
+    } finally {
+      loading = false;
     }
-    docToBeShared = null;
-    passcode = null;
   };
 
   const toggleShareability = (doc: Document): boolean => {
@@ -84,6 +111,16 @@
     })
     docToBeShared = null;
     passcode = null;
+  };
+
+  let premiumUser: boolean = cookiestore.get('premium') === USER_TYPE.PREMIUM;
+  const goToPremium = () => {
+    navigate('/premium');
+  };
+
+  // Life Cycle
+  $: if (!!passcodeRef) {
+    passcodeRef.focus();
   };
 </script>
 
@@ -125,7 +162,7 @@
                   title={doc.isShared ? 'This document is shared' : 'This document is not shared'}
                   style="cursor: pointer;"
                   on:click|stopPropagation={() => { doc.isShared = toggleShareability(doc); }}>
-                  <Icon name={doc.isShared ? 'unlock' : 'lock'} />
+                  <Icon name={doc.isShared ? 'share' : 'hidden'} />
                 </span>
                 {#if doc.isShared}
                   <span
@@ -145,19 +182,26 @@
     <div class="noDoc">No saved documents to display</div>
   {/if}
 
+  {#if !premiumUser}
+    <div class="upgradeMessage" on:click={goToPremium}>
+      <Icon name="star" />
+      <u>Upgrade to a Premium membership now</u>
+    </div>
+  {/if}
+
   {#if !!docToBeShared}
     <Modal
       title={`${docToBeShared.isShared ? 'Share' : 'Unshare'} <i>${docToBeShared.title}</i>`}
       style="max-width: 25em; min-height: 5em;"
       backgroundClose
-      on:close={() => { revertShareability(); }}>
+      on:close={() => { revertShareability(); error.message = null; error.detail = null; }}>
       <form class="sharePrompt" on:submit|preventDefault>
         <label for="passcode">
           Passcode
-          <input type="password" required minlength="6" bind:value={passcode} />
+          <input type="password" required minlength="6" bind:value={passcode} bind:this={passcodeRef} />
         </label>
 
-        <Button type="secondary" on:click={() => {
+        <Button type="secondary" working={loading} on:click={() => {
           if (!docToBeShared) return;
           if (docToBeShared.isShared) {
             shareDocument();
@@ -237,5 +281,18 @@
     margin: var(--margin) var(--margin) 0 0;
     font-size: calc(var(--type-body-size) + var(--border-width));
     color: var(--color-error-foreground);
+  }
+
+  .upgradeMessage {
+    position: relative;
+    width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--margin) / 2);
+    font-size: calc(var(--type-body-size) - var(--border-width));
+    opacity: .7;
+    margin: 0 auto;
+    margin-top: calc(var(--margin) * 5);
+    cursor: pointer;
   }
 </style>

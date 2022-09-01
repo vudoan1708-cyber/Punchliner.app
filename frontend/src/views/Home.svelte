@@ -6,6 +6,9 @@
   import Modal from '../components/Modal.svelte';
   import Button from '../components/Button.svelte';
 
+  // Utility
+  import { cookiestore } from '../helper/storage';
+
   // Type
   import type { Error } from '../types/Error';
 
@@ -21,6 +24,9 @@
 
   // Life Cycle
   onMount(() => {
+    const session = cookiestore.get('session');
+    if (!!session) navigate('/editor');
+
     const { search } = window.location;
     if (!search.includes('message')) return;
     message.message = decodeURI(search.split('=')[1]);
@@ -29,15 +35,32 @@
 
 <!-- <template> -->
   <section id="Home">
-    <h2>Welcome to Punchliner</h2>
+    <header>
+      <h2>Welcome to Punchliner</h2>
+      <p class="quote"><i>"Punchliner is the only joke writing app that blurs your punchlines"</i></p>
+    </header>
+
     <Button on:click={goToRegisterScreen}>Register for free and start writing</Button>
     <p class="login_link">Already a member? <a href="/account/login"><u><i>Sign in.</i></u></a></p>
+    
+    <div id="demo">
+      <p style="margin: var(--margin); font-size: var(--type-body-size); font-style: italic;">
+        Have a look through our demo video to have a clue what our app is about
+      </p>
+      <video width="320" controls>
+        <track kind="captions">
+        <source src="src/assets/demo/jokeapp.mov" type="video/mp4">
+        <source src="src/assets/demo/jokeapp.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+
     <br /><br />
     <div class="features">
       <div>
         <h3>Shareable documents with password protection</h3>
         <p>Written documents can be shared using a secure link and password protection.
-          Only users who have a Punchliner's account and the password can get access to the shared documents.</p>
+          Only users who have the unique link and the shared password from the owner can get access to the shared documents.</p>
       </div>
       <div>
         <h3>Safe and secure automatic backups</h3>
@@ -47,11 +70,29 @@
       <div>
         <h3>Hidden text</h3>
         <p>We take pride in one of the main features of Punchliner, which also led to the birth of the application
-          and that is the ability to display and hide text on demand.</p>
+          and that is the ability to display and hide text on demand.<br />
+          This feature allows users to blur the punchlines when you're joke writing
+          and leave it as a surprise when the hidden text is hovered on by someone else !!!</p>
       </div>
       <div>
         <h3>Pricing</h3>
-        <p>Punchliner is free to use. Create a new account and start writing immediately with no credit card required.</p>
+        <p>Punchliner is free to use with limited features. Create a new account and start writing immediately
+          with no credit card required.<br />
+          Premium accounts that allow for an unlimited number of documents to be created and
+          sharing written documents with passcode protection has never been easier.
+        </p>
+        <table class="pricingTable">
+          <tbody>
+            <tr>
+              <th>Punchliner BASIC</th>
+              <td>Free</td>
+            </tr>
+            <tr>
+              <th>Punchliner PREMIUM</th>
+              <td>$3 / month</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -76,6 +117,24 @@
     max-width: 900px;
   }
 
+  header {
+    text-align: center;
+  }
+
+  header .quote {
+    margin: calc(var(--margin) * 2) 0 calc(var(--margin) * 5) 0;
+  }
+
+  #demo {
+    margin-top: calc(var(--margin) * 2);
+    text-align: center;
+  }
+
+  #demo video {
+    border: var(--border-width) solid var(--color-primary-light);
+    border-radius: var(--border-radius);
+  }
+
   div.features {
     position: relative;
     display: flex;
@@ -86,5 +145,11 @@
   div.features h3,
   div.features p {
     margin: var(--margin);
+  }
+
+  table.pricingTable {
+    position: relative;
+    width: 50%;
+    margin: calc(var(--margin) * 3) auto;
   }
 </style>

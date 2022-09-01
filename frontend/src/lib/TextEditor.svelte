@@ -107,7 +107,7 @@
   const findCaretPosition = (numOfModifiedCharacters: number, eventType: string) => {
     if (!!pasted) return editorArea.selectionStart - pasted.length;
     if (eventType === 'deleteContentForward') return editorArea.selectionStart;
-    if (eventType === 'deleteContentBackward') return editorArea.selectionStart;
+    if (eventType === 'deleteContentBackward') return editorArea.selectionStart - numOfModifiedCharacters;
     return editorArea.selectionStart - numOfModifiedCharacters;
   };
 
@@ -141,7 +141,7 @@
   ) => (
     eventType.indexOf('deleteContent') > -1
       && editorActualCaretPosition >= selection.start
-      && editorActualCaretPosition <= selection.end
+      && editorActualCaretPosition < selection.end
   );
 
   const modifyHTMLContent = (numOfModifiedCharacters: number, eventType: string = ''): string => {

@@ -224,13 +224,13 @@
       documentId = res.data.document._id;
       loadedDocument.loaded = true;
       textEditorDisabled = false;
+      savePrompt = true;
     } catch (ex) {
       error.message = ex.message;
       error.detail = ex.detail;
       textEditorDisabled = true;
     } finally {
       loading = false;
-      savePrompt = true;
     }
   };
 
@@ -324,9 +324,6 @@
 
   // Life Cycles
   onMount(async () => {
-    // Make 2 or 3 API calls here
-    // Shareable Document check
-
     // Document Overview API (get document ID(s))
     allDocs = await getDocuments();
 
