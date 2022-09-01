@@ -50,6 +50,7 @@
 
       ({ bearer } = response.data);
       cookiestore.set({ name: 'session', value: bearer });
+      cookiestore.set({ name: 'userEmail', value: email });
 
       const message = 'Congratulations! You have just created a new account. \nPlease login using the newly created credentials';
       navigate(`/account/login?message=${encodeURIComponent(message)}`, { replace: false });

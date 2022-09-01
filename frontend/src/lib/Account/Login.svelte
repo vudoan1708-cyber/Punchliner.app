@@ -16,8 +16,8 @@
   import { goToHomepage } from '../../helper/utilities';
   import { cookiestore } from "../../helper/storage";
 
-  let email: string|null = null;
-  let password: string|null = null;
+  let email: string = cookiestore.get('userEmail') || '';
+  let password: string | null = null;
 
   let loading: boolean = false;
 
@@ -32,10 +32,10 @@
 
   // Event Handler
   const goToEditor = async (): Promise<void> => {
-    let bearer: string|null = null;
-    let userId: string|null = null;
-    let userEmail: string|null = null;
-    let userType: string|null = null;
+    let bearer: string | null = null;
+    let userId: string | null = null;
+    let userEmail: string | null = null;
+    let userType: string | null = null;
 
     if (disabled || password.length < passwordRef.minLength) return;
 
