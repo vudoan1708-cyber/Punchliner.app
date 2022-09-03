@@ -12,8 +12,10 @@ import PaymentController from "./controllers/payment";
 // NOTE: init app instance
 const app = express();
 
-// NOTE: 3rd party webhooks
+// NOTE: serve static files
+app.use(express.static("dist"));
 
+// NOTE: 3rd party webhooks
 app.post(
   "/v1/stripe/webhook",
   express.raw({ type: "application/json" }),
