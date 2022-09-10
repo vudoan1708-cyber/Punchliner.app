@@ -117,6 +117,120 @@ export interface paths {
       };
     };
   };
+  "/document": {
+    get: {
+      parameters: {
+        query: {
+          id?: parameters["rowFilter.document.id"];
+          title?: parameters["rowFilter.document.title"];
+          content?: parameters["rowFilter.document.content"];
+          words?: parameters["rowFilter.document.words"];
+          ownerId?: parameters["rowFilter.document.ownerId"];
+          isShared?: parameters["rowFilter.document.isShared"];
+          passcode?: parameters["rowFilter.document.passcode"];
+          updatedBy?: parameters["rowFilter.document.updatedBy"];
+          created_at?: parameters["rowFilter.document.created_at"];
+          updated_at?: parameters["rowFilter.document.updated_at"];
+          /** Filtering Columns */
+          select?: parameters["select"];
+          /** Ordering */
+          order?: parameters["order"];
+          /** Limiting and Pagination */
+          offset?: parameters["offset"];
+          /** Limiting and Pagination */
+          limit?: parameters["limit"];
+        };
+        header: {
+          /** Limiting and Pagination */
+          Range?: parameters["range"];
+          /** Limiting and Pagination */
+          "Range-Unit"?: parameters["rangeUnit"];
+          /** Preference */
+          Prefer?: parameters["preferCount"];
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          schema: definitions["document"][];
+        };
+        /** Partial Content */
+        206: unknown;
+      };
+    };
+    post: {
+      parameters: {
+        body: {
+          /** document */
+          document?: definitions["document"];
+        };
+        query: {
+          /** Filtering Columns */
+          select?: parameters["select"];
+        };
+        header: {
+          /** Preference */
+          Prefer?: parameters["preferReturn"];
+        };
+      };
+      responses: {
+        /** Created */
+        201: unknown;
+      };
+    };
+    delete: {
+      parameters: {
+        query: {
+          id?: parameters["rowFilter.document.id"];
+          title?: parameters["rowFilter.document.title"];
+          content?: parameters["rowFilter.document.content"];
+          words?: parameters["rowFilter.document.words"];
+          ownerId?: parameters["rowFilter.document.ownerId"];
+          isShared?: parameters["rowFilter.document.isShared"];
+          passcode?: parameters["rowFilter.document.passcode"];
+          updatedBy?: parameters["rowFilter.document.updatedBy"];
+          created_at?: parameters["rowFilter.document.created_at"];
+          updated_at?: parameters["rowFilter.document.updated_at"];
+        };
+        header: {
+          /** Preference */
+          Prefer?: parameters["preferReturn"];
+        };
+      };
+      responses: {
+        /** No Content */
+        204: never;
+      };
+    };
+    patch: {
+      parameters: {
+        query: {
+          id?: parameters["rowFilter.document.id"];
+          title?: parameters["rowFilter.document.title"];
+          content?: parameters["rowFilter.document.content"];
+          words?: parameters["rowFilter.document.words"];
+          ownerId?: parameters["rowFilter.document.ownerId"];
+          isShared?: parameters["rowFilter.document.isShared"];
+          passcode?: parameters["rowFilter.document.passcode"];
+          updatedBy?: parameters["rowFilter.document.updatedBy"];
+          created_at?: parameters["rowFilter.document.created_at"];
+          updated_at?: parameters["rowFilter.document.updated_at"];
+        };
+        body: {
+          /** document */
+          document?: definitions["document"];
+        };
+        header: {
+          /** Preference */
+          Prefer?: parameters["preferReturn"];
+        };
+      };
+      responses: {
+        /** No Content */
+        204: never;
+      };
+    };
+  };
 }
 
 export interface definitions {
@@ -140,6 +254,57 @@ export interface definitions {
     type: string;
     /** Format: character varying */
     stripe_cus_id: string;
+    /**
+     * Format: timestamp with time zone
+     * @default now()
+     */
+    created_at?: string;
+    /**
+     * Format: timestamp with time zone
+     * @default now()
+     */
+    updated_at?: string;
+  };
+  /** @description User's documents */
+  document: {
+    /**
+     * Format: uuid
+     * @description Note:
+     * This is a Primary Key.<pk/>
+     * @default extensions.uuid_generate_v4()
+     */
+    id: string;
+    /**
+     * Format: character varying
+     * @default
+     */
+    title?: string;
+    /**
+     * Format: text
+     * @default
+     */
+    content?: string;
+    /** Format: bigint */
+    words: number;
+    /**
+     * Format: uuid
+     * @description Note:
+     * This is a Foreign Key to `account.id`.<fk table='account' column='id'/>
+     */
+    ownerId: string;
+    /**
+     * Format: boolean
+     * @default false
+     */
+    isShared?: boolean;
+    /** Format: character varying */
+    passcode?: string;
+    /**
+     * Format: uuid
+     * @description Note:
+     * This is a Foreign Key to `account.id`.<fk table='account' column='id'/>
+     */
+    updatedBy?: string;
     /**
      * Format: timestamp with time zone
      * @default now()
@@ -202,6 +367,28 @@ export interface parameters {
   "rowFilter.account.created_at": string;
   /** Format: timestamp with time zone */
   "rowFilter.account.updated_at": string;
+  /** @description document */
+  "body.document": definitions["document"];
+  /** Format: uuid */
+  "rowFilter.document.id": string;
+  /** Format: character varying */
+  "rowFilter.document.title": string;
+  /** Format: text */
+  "rowFilter.document.content": string;
+  /** Format: bigint */
+  "rowFilter.document.words": string;
+  /** Format: uuid */
+  "rowFilter.document.ownerId": string;
+  /** Format: boolean */
+  "rowFilter.document.isShared": string;
+  /** Format: character varying */
+  "rowFilter.document.passcode": string;
+  /** Format: uuid */
+  "rowFilter.document.updatedBy": string;
+  /** Format: timestamp with time zone */
+  "rowFilter.document.created_at": string;
+  /** Format: timestamp with time zone */
+  "rowFilter.document.updated_at": string;
 }
 
 export interface operations {}

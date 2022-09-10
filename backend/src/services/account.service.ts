@@ -12,7 +12,7 @@ async function findAllAccounts(): Promise<Array<
 async function findAccountByEmail(
   email: string
 ): Promise<definitions["account"] | null> {
-  return await supabase.getByEmail(email);
+  return await supabase.getAccountByEmail(email);
 }
 
 async function createNewAccount(
@@ -25,4 +25,22 @@ async function createNewAccount(
   return await supabase.createNewAccount(payload);
 }
 
-export default { findAllAccounts, findAccountByEmail, createNewAccount };
+async function updateAccount(
+  payload: Partial<definitions["account"]>
+): Promise<definitions["account"] | null> {
+  return await supabase.updateAccount(payload);
+}
+
+async function findByStripCustomerId(
+  stripeCusId: string
+): Promise<definitions["account"] | null> {
+  return await supabase.getAccountByStripeCustomerId(stripeCusId);
+}
+
+export default {
+  updateAccount,
+  findAllAccounts,
+  createNewAccount,
+  findAccountByEmail,
+  findByStripCustomerId,
+};

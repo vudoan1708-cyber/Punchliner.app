@@ -1,10 +1,11 @@
 import httpStatus from "http-status";
-import ApiError from "../utils/api-error";
-import { UNAUTHORIZED } from "../shared/error";
 import StripeVendor from "../vendor/stripe";
-import { CANNOT_CREATE_STRIPE_CHECKOUT_SESSION } from "../shared/error/error.payment";
-import AccountModel, { AppUserTypeEnum } from "../models/account";
+import AccountService from "../services/account.service";
+import ApiError from "../utils/api-error";
 import CacheManager from "../configs/cache";
+import { UNAUTHORIZED } from "../shared/error";
+import { CANNOT_CREATE_STRIPE_CHECKOUT_SESSION } from "../shared/error/error.payment";
+import { AppUserType } from "../types/user-type";
 import type { Stripe } from "stripe";
 import type { RequestHandler } from "express";
 import type { RequestHandlerWithType } from "../shared/request-type";
@@ -60,22 +61,31 @@ const registerStripeWebhookEvents: RequestHandler = async (
               ? paymentIntent.customer
               : paymentIntent.customer?.id;
 
-          const updatedAccount = await AccountModel.findOneAndUpdate(
-            {
-              stripe_cus_id: stripeCusId,
-              type: AppUserTypeEnum.NORMAL,
-            },
-            {
-              $set: {
-                type: AppUserTypeEnum.PREMIUM,
-              },
-            }
+          if (!stripeCusId) {
+            response
+              .status(500)
+              .send("Webhook Error: cannot get stripe_cus_id");
+            return;
+          }
+
+          const targetAccount = await AccountService.findByStripCustomerId(
+            stripeCusId
           );
 
-          // NOTE: force user logout
-          if (updatedAccount) {
-            CacheManager.removeJWT(updatedAccount._id.toString());
+          if (targetAccount?.type === AppUserType.PREMIUM) {
+            break;
           }
+
+          const updatedAccount = await AccountService.updateAccount({
+            type: AppUserType.PREMIUM,
+          });
+
+          if (!updatedAccount) {
+            break;
+          }
+
+          // NOTE: force user logout
+          CacheManager.removeJWT(updatedAccount.id);
 
           break;
         }

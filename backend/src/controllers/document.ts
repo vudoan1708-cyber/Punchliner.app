@@ -1,24 +1,26 @@
 import httpStatus from "http-status";
-import { Types } from "mongoose";
 import { createResponse } from "../utils/response";
-import DocumentModel from "../models/document";
+import DocumentService from "../services/document.service";
+import DocumentUtil from "../utils/document";
+import PasswordUtil from "../utils/password";
 import { paginate } from "../utils/pagination";
 import ApiError from "../utils/api-error";
 import {
   DOCUMENT_ALREADY_SHARED,
+  DOCUMENT_CREATE_FAILED,
   DOCUMENT_NOT_FOUND,
   DOCUMENT_UNSHARE_FORBIDDEN_WRONG_PASSCODE,
+  DOCUMENT_UPDATE_FAILED,
   DOCUMENT_VIEW_FORBIDDEN,
   DOCUMENT_VIEW_FORBIDDEN_WRONG_PASSCODE,
   NOT_PREMIUM_USER,
   UNAUTHORIZED,
 } from "../shared/error";
-import DocumentService from "../services/document.service";
-import { AppUserTypeEnum } from "../models/account";
 import type {
   PaginationOption,
   RequestHandlerWithType,
 } from "../shared/request-type";
+import { AppUserType } from "../types/user-type";
 
 type GetDocumentOverviewRequest = RequestHandlerWithType<any, PaginationOption>;
 
@@ -30,15 +32,12 @@ const getDocuments: GetDocumentOverviewRequest = async (req, res, next) => {
 
     const { page, pageSize } = req.query;
 
-    const queryOptions = paginate(page, pageSize);
+    const offset = paginate(page, pageSize);
 
-    const documents = await DocumentModel.find(
-      {
-        ownerId: req.user._id,
-      },
-      null,
-      queryOptions
-    );
+    const documents = await DocumentService.getAllUserDocuments(req.user._id, {
+      offset,
+      pageSize,
+    });
 
     res.status(httpStatus.OK).json(
       createResponse({ documents }, true, undefined, {
@@ -69,22 +68,33 @@ const saveDocument: SaveDocumentRequest = async (req, res, next) => {
 
     const { content: newContent, title: newTitle } = req.body;
 
-    const targetDocument = await DocumentModel.findOne({
-      _id: documentId,
-    });
+    const targetDocument = await DocumentService.getDocumentById(documentId);
 
     if (!targetDocument) {
       throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
     }
 
-    const words = DocumentService.countContentWords(newContent);
+    const newWordsCount = DocumentUtil.countContentWords(newContent);
 
-    targetDocument.content = newContent;
-    targetDocument.words = words;
-    targetDocument.title = newTitle;
-    targetDocument.updatedBy = new Types.ObjectId(req.user._id);
+    const updatedDocumentPayload = {
+      ...targetDocument,
+      title: newTitle,
+      content: newContent,
+      words: newWordsCount,
+      updatedBy: req.user._id,
+    };
 
-    const updatedDocument = await targetDocument.save();
+    const updatedDocument = await DocumentService.updateDocument(
+      updatedDocumentPayload
+    );
+
+    if (!updatedDocument) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        DOCUMENT_UPDATE_FAILED,
+        false
+      );
+    }
 
     res
       .status(httpStatus.OK)
@@ -105,30 +115,36 @@ const createDocument: CreateDocumentRequest = async (req, res, next) => {
       throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
     }
 
-    const numberOfDocuments = await DocumentModel.count({
-      ownerId: req.user._id,
-    });
+    const documents = await DocumentService.getAllUserDocuments(req.user._id);
 
-    if (numberOfDocuments !== 0 && req.user.type !== AppUserTypeEnum.PREMIUM) {
+    if (documents?.length !== 0 && req.user.type !== AppUserType.PREMIUM) {
       throw new ApiError(httpStatus.FORBIDDEN, NOT_PREMIUM_USER, true);
     }
 
     const { content, title } = req.body;
 
-    const words = DocumentService.countContentWords(content);
+    const newWordsCount = DocumentUtil.countContentWords(content);
 
-    const newDocument = new DocumentModel({
+    const payload = {
       title: title,
-      words: words,
+      words: newWordsCount,
       content: content,
       ownerId: req.user._id,
-    });
+    };
 
-    await newDocument.save();
+    const createdDocument = await DocumentService.createDocument(payload);
+
+    if (!createdDocument) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        DOCUMENT_CREATE_FAILED,
+        false
+      );
+    }
 
     res
       .status(httpStatus.CREATED)
-      .json(createResponse({ document: newDocument }));
+      .json(createResponse({ document: createdDocument }));
   } catch (e) {
     next(e);
   }
@@ -148,16 +164,13 @@ const getDocumentById: GetDocumentRequest = async (req, res, next) => {
 
     const { documentId } = req.params;
 
-    // NOTE: get document by id
-    const documentDetail = await DocumentModel.findOne({
-      _id: documentId,
-    });
+    const documentDetail = await DocumentService.getDocumentById(documentId);
 
     if (!documentDetail) {
       throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
     }
 
-    const isOwner = req.user?._id === documentDetail.ownerId.toString();
+    const isOwner = req.user?._id === documentDetail.ownerId;
 
     if (!isOwner) {
       throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
@@ -189,15 +202,13 @@ const shareDocument: ShareDocumentRequest = async (req, res, next) => {
 
     const { passcode } = req.body;
 
-    const targetDocument = await DocumentModel.findOne({
-      _id: documentId,
-    });
+    const targetDocument = await DocumentService.getDocumentById(documentId);
 
     if (!targetDocument) {
       throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
     }
 
-    const isOwner = req.user._id === targetDocument.ownerId.toString();
+    const isOwner = req.user?._id === targetDocument.ownerId;
 
     if (!isOwner) {
       throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
@@ -207,17 +218,23 @@ const shareDocument: ShareDocumentRequest = async (req, res, next) => {
       throw new ApiError(httpStatus.CONFLICT, DOCUMENT_ALREADY_SHARED, true);
     }
 
-    targetDocument.isShared = true;
+    const updatePayload = { ...targetDocument, passcode, isShared: true };
 
-    targetDocument.passcode = passcode;
+    const updatedDocument = await DocumentService.updateDocument(updatePayload);
 
-    await targetDocument.save();
+    if (!updatedDocument) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        DOCUMENT_UPDATE_FAILED,
+        false
+      );
+    }
 
-    delete targetDocument.passcode;
+    delete updatedDocument?.passcode;
 
     res
       .status(httpStatus.OK)
-      .json(createResponse({ document: targetDocument }));
+      .json(createResponse({ document: updatedDocument }));
   } catch (e) {
     next(e);
   }
@@ -236,9 +253,7 @@ const canViewDocument: CanViewDocumentRequest = async (req, res, next) => {
     const { passcode } = req.body;
 
     // NOTE: get document by id
-    const documentDetail = await DocumentModel.findOne({
-      _id: documentId,
-    });
+    const documentDetail = await DocumentService.getDocumentById(documentId);
 
     if (!documentDetail) {
       throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
@@ -286,21 +301,22 @@ const unShareDocument: UnShareDocumentRequest = async (req, res, next) => {
 
     const { passcode } = req.body;
 
-    const targetDocument = await DocumentModel.findOne({
-      _id: documentId,
-    });
+    const targetDocument = await DocumentService.getDocumentById(documentId);
 
     if (!targetDocument) {
       throw new ApiError(httpStatus.NOT_FOUND, DOCUMENT_NOT_FOUND, true);
     }
 
-    const isOwner = req.user._id === targetDocument.ownerId.toString();
+    const isOwner = req.user._id === targetDocument.ownerId;
 
     if (!isOwner) {
       throw new ApiError(httpStatus.FORBIDDEN, DOCUMENT_VIEW_FORBIDDEN, true);
     }
 
-    const isPasscodeValid = await targetDocument.comparePasscode(passcode);
+    const isPasscodeValid = await PasswordUtil.isPasswordMatch(
+      passcode,
+      targetDocument.passcode ?? ""
+    );
 
     if (!isPasscodeValid) {
       throw new ApiError(
@@ -310,15 +326,25 @@ const unShareDocument: UnShareDocumentRequest = async (req, res, next) => {
       );
     }
 
-    targetDocument.isShared = false;
+    const updatePayload = {
+      ...targetDocument,
+      passcode: undefined,
+      isShared: false,
+    };
 
-    targetDocument.passcode = undefined;
+    const updatedDocument = await DocumentService.updateDocument(updatePayload);
 
-    await targetDocument.save();
+    if (!updatedDocument) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        DOCUMENT_UPDATE_FAILED,
+        false
+      );
+    }
 
     res
       .status(httpStatus.OK)
-      .json(createResponse({ document: targetDocument }));
+      .json(createResponse({ document: updatedDocument }));
   } catch (e) {
     next(e);
   }

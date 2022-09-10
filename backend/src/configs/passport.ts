@@ -1,14 +1,14 @@
 import passportLocal from "passport-local";
 import passportJwt from "passport-jwt";
 import httpStatus from "http-status";
-import CacheManager from "../configs/cache";
-import { UNAUTHORIZED } from "../shared/error";
-import { AppUserTypeEnum } from "../models/account";
-import ApiError from "../utils/api-error";
-import { INVALID_PASSWORD_ERROR, USER_NOT_FOUND } from "../shared/error";
 import AccountService from "../services/account.service";
 import PasswordUtil from "../utils/password";
+import CacheManager from "../configs/cache";
+import ApiError from "../utils/api-error";
 import configs from "../configs";
+import { UNAUTHORIZED } from "../shared/error";
+import { INVALID_PASSWORD_ERROR, USER_NOT_FOUND } from "../shared/error";
+import { AppUserType } from "../types/user-type";
 import type { Request } from "express";
 
 const LocalStrategy = passportLocal.Strategy;
@@ -48,7 +48,7 @@ export const PassportLocalStrategy = new LocalStrategy(
       return done(undefined, {
         email: account.email,
         _id: account.id,
-        type: account.type ?? AppUserTypeEnum.NORMAL,
+        type: account.type ?? AppUserType.NORMAL,
         stripe_cus_id: account.stripe_cus_id,
       });
     } catch (error) {

@@ -1,10 +1,11 @@
-import mongoose from "mongoose";
 import config from "./configs";
 import logger from "./configs/logger";
 import app from "./app";
 import type { Server } from "http";
 
-let server: Server | null;
+const server: Server | null = app.listen(config.PORT, () => {
+  logger.info(`Listening to port ${config.PORT}`);
+});
 
 if (
   !config.MONGODB_URI ||
@@ -16,12 +17,12 @@ if (
   process.exit(1);
 }
 
-mongoose.connect(config.MONGODB_URI).then(() => {
-  logger.info("Connected to MongoDB");
-  server = app.listen(config.PORT, () => {
-    logger.info(`Listening to port ${config.PORT}`);
-  });
-});
+// mongoose.connect(config.MONGODB_URI).then(() => {
+//   logger.info("Connected to MongoDB");
+//   server = app.listen(config.PORT, () => {
+//     logger.info(`Listening to port ${config.PORT}`);
+//   });
+// });
 
 const exitHandler = () => {
   if (server) {

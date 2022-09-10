@@ -21,6 +21,8 @@ const ERROR_EN: Record<ErrorCode, string> = {
   PAE106: "You cannot view this document",
   PAE107: "Wrong document's passcode",
   PAE108: "Cannot unshare (Wrong document's passcode)",
+  PAE109: "Cannot update this document",
+  PAE110: "Cannot create new document",
   PAE200: "Cannot create checkout session",
 };
 
