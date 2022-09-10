@@ -7,7 +7,7 @@
     "start": "export NODE_ENV=production && node dist/index.js",
     "dev": "tsnd --respawn src/index.ts",
     "build": "rimraf ./dist && tsc",
-    "codegen:type": "npx openapi-typescript $(echo $(grep SUPABASE_PROJECT_URL .env | cut -d '=' -f2)$(echo \"/rest/v1/?apikey=\")$(grep SUPABASE_ANON_KEY .env | cut -d '=' -f2)) --output src/types/supabase.ts"
+    "codegen:type": "npx openapi-typescript $(echo $(grep SUPABASE_PROJECT_URL .env | cut -d '=' -f2)$(echo \"/rest/v1/?apikey=\")$(grep SUPABASE_API_KEY .env | cut -d '=' -f2)) --output src/types/supabase.ts"
   },
   "keywords": [
     "word",
