@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+
 import configs from "../configs";
 import { JWT_EXPIRATION_IN_MS } from "../shared/expiration";
 import CacheManager from "../configs/cache";

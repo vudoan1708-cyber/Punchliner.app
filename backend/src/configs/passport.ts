@@ -3,11 +3,13 @@ import passportJwt from "passport-jwt";
 import httpStatus from "http-status";
 import CacheManager from "../configs/cache";
 import { UNAUTHORIZED } from "../shared/error";
-import AccountModel, { AppUserTypeEnum } from "../models/account";
+import { AppUserTypeEnum } from "../models/account";
 import ApiError from "../utils/api-error";
 import { INVALID_PASSWORD_ERROR, USER_NOT_FOUND } from "../shared/error";
+import AccountService from "../services/account.service";
+import PasswordUtil from "../utils/password";
 import configs from "../configs";
-import { Request } from "express";
+import type { Request } from "express";
 
 const LocalStrategy = passportLocal.Strategy;
 const JwtStrategy = passportJwt.Strategy;
@@ -20,9 +22,9 @@ const ExtractJwt = passportJwt.ExtractJwt;
 
 export const PassportLocalStrategy = new LocalStrategy(
   { usernameField: "email" },
-  async (username, password, done) => {
+  async (email, password, done) => {
     try {
-      const account = await AccountModel.findOne({ email: username });
+      const account = await AccountService.findAccountByEmail(email);
 
       if (!account) {
         return done(
@@ -31,7 +33,10 @@ export const PassportLocalStrategy = new LocalStrategy(
         );
       }
 
-      const isMatch = await account.comparePassword(password);
+      const isMatch = await PasswordUtil.isPasswordMatch(
+        password,
+        account.password
+      );
 
       if (!isMatch) {
         return done(
@@ -42,7 +47,7 @@ export const PassportLocalStrategy = new LocalStrategy(
 
       return done(undefined, {
         email: account.email,
-        _id: account._id,
+        _id: account.id,
         type: account.type ?? AppUserTypeEnum.NORMAL,
         stripe_cus_id: account.stripe_cus_id,
       });

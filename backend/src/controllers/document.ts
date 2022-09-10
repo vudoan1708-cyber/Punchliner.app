@@ -1,9 +1,5 @@
 import httpStatus from "http-status";
 import { Types } from "mongoose";
-import type {
-  PaginationOption,
-  RequestHandlerWithType,
-} from "../shared/request-type";
 import { createResponse } from "../utils/response";
 import DocumentModel from "../models/document";
 import { paginate } from "../utils/pagination";
@@ -19,6 +15,10 @@ import {
 } from "../shared/error";
 import DocumentService from "../services/document.service";
 import { AppUserTypeEnum } from "../models/account";
+import type {
+  PaginationOption,
+  RequestHandlerWithType,
+} from "../shared/request-type";
 
 type GetDocumentOverviewRequest = RequestHandlerWithType<any, PaginationOption>;
 

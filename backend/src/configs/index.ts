@@ -14,4 +14,9 @@ export default {
     CHECKOUT_SUCCESS_URL: process.env.STRIPE_CHECKOUT_SUCCESS_URL || "",
     CHECKOUT_CANCEL_URL: process.env.STRIPE_CHECKOUT_CANCEL_URL || "",
   },
+  SUPABASE: {
+    PROJECT_URL: process.env.SUPABASE_PROJECT_URL || "",
+    DATABASE_URL: process.env.SUPABASE_DATABASE_URL || "",
+    API_KEY: process.env.SUPABASE_API_KEY || "",
+  },
 };

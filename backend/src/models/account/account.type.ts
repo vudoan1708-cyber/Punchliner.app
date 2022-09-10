@@ -1,14 +1,14 @@
 import type { Model } from "mongoose";
+import { definitions } from "../../types/supabase";
 
 export enum AppUserTypeEnum {
   PREMIUM = "PREMIUM",
   NORMAL = "NORMAL",
 }
-interface IAccountDoc {
-  type: AppUserTypeEnum;
-  email: string;
-  password: string;
-  stripe_cus_id: string;
+
+type A = Pick<definitions, "account">["account"];
+interface IAccountDoc extends A {
+  // type: AppUserTypeEnum;
 }
 
 interface IAccountMethods {

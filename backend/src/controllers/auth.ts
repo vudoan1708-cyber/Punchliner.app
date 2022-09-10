@@ -5,6 +5,7 @@ import { RequestHandlerWithType } from "../shared/request-type";
 import ApiError from "../utils/api-error";
 import { createResponse } from "../utils/response";
 import AuthService from "../services/auth.service";
+import AccountService from "../services/account.service";
 import Stripe from "../vendor/stripe";
 
 const login: RequestHandlerWithType<{
@@ -34,16 +35,16 @@ const register: RequestHandlerWithType<{
   try {
     const { email, password } = req.body;
 
-    const existedAccount = await AccountModel.findOne({ email });
+    const existedAccount = await AccountService.findAccountByEmail(email);
 
     if (existedAccount) {
       throw new ApiError(httpStatus.CONFLICT, USER_ALREADY_EXISTED, true);
     }
 
     // NOTE: create Stripe customer
-    const customer = await Stripe.addNewCustomer(email);
+    const stripeCustomer = await Stripe.addNewCustomer(email);
 
-    if (!customer) {
+    if (!stripeCustomer) {
       throw new ApiError(
         httpStatus.INTERNAL_SERVER_ERROR,
         USER_ALREADY_EXISTED,
@@ -51,28 +52,36 @@ const register: RequestHandlerWithType<{
       );
     }
 
-    const newAccount = new AccountModel({
+    const payload = {
       email,
       password,
-      stripe_cus_id: customer.id,
-    });
+      stripe_cus_id: stripeCustomer.id,
+    };
 
-    const updatedAccount = await newAccount.save();
+    const createdAccount = await AccountService.createNewAccount(payload);
 
-    updatedAccount.password = "";
+    if (!createdAccount) {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        USER_ALREADY_EXISTED,
+        false
+      );
+    }
+
+    createdAccount.password = "";
 
     const tokenPayload = {
-      _id: updatedAccount._id.toString(),
-      email: updatedAccount.email,
-      type: updatedAccount.type,
-      stripe_cus_id: updatedAccount.stripe_cus_id,
+      _id: createdAccount.id,
+      email: createdAccount.email,
+      type: createdAccount.type,
+      stripe_cus_id: createdAccount.stripe_cus_id,
     };
 
     const token = AuthService.signJwtToken({ user: tokenPayload });
 
     res
       .status(201)
-      .json(createResponse({ user: updatedAccount, bearer: token }));
+      .json(createResponse({ user: createdAccount, bearer: token }));
   } catch (e) {
     next(e);
   }
