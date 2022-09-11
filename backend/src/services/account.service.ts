@@ -26,8 +26,13 @@ async function createNewAccount(
 }
 
 async function updateAccount(
-  payload: Partial<definitions["account"]>
+  payload: Partial<definitions["account"]>,
+  newPassword?: string
 ): Promise<definitions["account"] | null> {
+  // hash the password
+  if (newPassword) {
+    payload.password = await PasswordUtil.hashPassword(newPassword);
+  }
   return await supabase.updateAccount(payload);
 }
 

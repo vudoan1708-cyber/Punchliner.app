@@ -82,12 +82,14 @@ async function createNewAccount(
 async function updateAccount(
   payload: Partial<definitions["account"]>
 ): Promise<definitions["account"] | null> {
+  console.log(payload);
   const { data, error } = await supabase
     .from<definitions["account"]>("account")
     .update(payload)
     .single();
 
   if (error) {
+    console.log("err:", error);
     logger.error("supabase-update-account:", error);
     return null;
   }

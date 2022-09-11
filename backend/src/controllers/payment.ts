@@ -72,11 +72,17 @@ const registerStripeWebhookEvents: RequestHandler = async (
             stripeCusId
           );
 
+          if (!targetAccount) {
+            response.status(500).send("Webhook Error: cannot get account id");
+            return;
+          }
+
           if (targetAccount?.type === AppUserType.PREMIUM) {
             break;
           }
 
           const updatedAccount = await AccountService.updateAccount({
+            id: targetAccount?.id,
             type: AppUserType.PREMIUM,
           });
 

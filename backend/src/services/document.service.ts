@@ -44,12 +44,19 @@ async function getDocumentById(
 async function createDocument(
   values: Partial<definitions["document"]>
 ): Promise<definitions["document"] | null> {
+  if (values.passcode) {
+    values.passcode = await PasswordUtil.hashPassword(values.passcode);
+  }
   return await Supabase.createDocument(values);
 }
 
 async function updateDocument(
-  values: Partial<definitions["document"]>
+  values: Partial<definitions["document"]>,
+  newPasscode?: string
 ): Promise<definitions["document"] | null> {
+  if (newPasscode) {
+    values.passcode = await PasswordUtil.hashPassword(newPasscode);
+  }
   return await Supabase.updateDocument(values);
 }
 

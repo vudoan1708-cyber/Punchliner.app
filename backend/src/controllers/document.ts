@@ -218,9 +218,12 @@ const shareDocument: ShareDocumentRequest = async (req, res, next) => {
       throw new ApiError(httpStatus.CONFLICT, DOCUMENT_ALREADY_SHARED, true);
     }
 
-    const updatePayload = { ...targetDocument, passcode, isShared: true };
+    const updatePayload = { ...targetDocument, isShared: true };
 
-    const updatedDocument = await DocumentService.updateDocument(updatePayload);
+    const updatedDocument = await DocumentService.updateDocument(
+      updatePayload,
+      passcode
+    );
 
     if (!updatedDocument) {
       throw new ApiError(
