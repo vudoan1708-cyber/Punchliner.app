@@ -52,7 +52,7 @@
       }
 
       ({ bearer } = response.data);
-      userId = response.data.user._id;
+      userId = response.data.user.id;
       userEmail = response.data.user.email;
       userType = response.data.user.type;
       cookiestore.set({ name: 'session', value: bearer });

@@ -7,6 +7,5 @@ export type Document = {
   updatedBy: string;
   isShared: boolean;
   words: number;
-  __v?: number;
-  _id: string;
+  id: string;
 };
