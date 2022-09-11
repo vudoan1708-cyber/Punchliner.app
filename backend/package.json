@@ -43,7 +43,6 @@
     "helmet": "^5.1.1",
     "http-status": "^1.5.2",
     "jsonwebtoken": "^8.5.1",
-    "memorystore": "^1.6.7",
     "node-cache": "^5.1.2",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
