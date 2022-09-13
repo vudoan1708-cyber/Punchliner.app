@@ -54,7 +54,7 @@
 
     loading = true;
     try {
-      const res = await DocumentShareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).POST(sessionId);
+      const res = await DocumentShareBuilder().addDocumentId(docToBeShared.id).addPasscode(passcode).POST(sessionId);
       if (!res.success) {
         error.message = res.message;
         error.detail = res.detail;
@@ -74,7 +74,7 @@
 
     loading = true;
     try {
-      const res = await DocumentUnshareBuilder().addDocumentId(docToBeShared._id).addPasscode(passcode).PATCH(sessionId);
+      const res = await DocumentUnshareBuilder().addDocumentId(docToBeShared.id).addPasscode(passcode).PATCH(sessionId);
       if (!res.success) {
         error.message = res.message;
         error.detail = res.detail;
@@ -95,7 +95,7 @@
     return docToBeShared.isShared;
   };
   const viewSharedDocument = (doc: Document) => {
-    window.open(`/shared/${doc._id}`, '_blank');
+    window.open(`/shared/${doc.id}`, '_blank');
   };
   const retrieveDocument = (doc: Document) => {
     dispatch('get-document', doc);
@@ -104,7 +104,7 @@
     if (!docToBeShared || !allDocs) return;
 
     allDocs = allDocs.map((doc) => {
-      if (doc._id === (docToBeShared as Document)._id) {
+      if (doc.id === (docToBeShared as Document).id) {
         return { ...doc, isShared: !(docToBeShared as Document).isShared, };
       }
       return doc;

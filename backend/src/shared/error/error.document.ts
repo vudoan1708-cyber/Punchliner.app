@@ -7,6 +7,8 @@ export const DOCUMENT_CONTENT_REQUIRED = "PAE105";
 export const DOCUMENT_VIEW_FORBIDDEN = "PAE106";
 export const DOCUMENT_VIEW_FORBIDDEN_WRONG_PASSCODE = "PAE107";
 export const DOCUMENT_UNSHARE_FORBIDDEN_WRONG_PASSCODE = "PAE108";
+export const DOCUMENT_UPDATE_FAILED = "PAE109";
+export const DOCUMENT_CREATE_FAILED = "PAE110";
 
 export type DocumentErrorCode =
   | "PAE100"
@@ -17,4 +19,6 @@ export type DocumentErrorCode =
   | "PAE105"
   | "PAE106"
   | "PAE107"
-  | "PAE108";
+  | "PAE108"
+  | "PAE109"
+  | "PAE110";

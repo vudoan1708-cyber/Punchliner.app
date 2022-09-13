@@ -221,7 +221,7 @@
         return;
       }
 
-      documentId = res.data.document._id;
+      documentId = res.data.document.id;
       loadedDocument.loaded = true;
       textEditorDisabled = false;
       savePrompt = true;
@@ -282,7 +282,7 @@
         return null;
       }
 
-      documentId = res.data.document._id;
+      documentId = res.data.document.id;
       textEditorDisabled = false;
       return res.data.document;
     } catch (ex) {
@@ -312,7 +312,7 @@
 
   let allDocs: Array<Document> | void = null;
   const toLoadDocument = async (doc: Document) => {
-    const firstDoc = await getDocument(doc._id);
+    const firstDoc = await getDocument(doc.id);
     if (!firstDoc) return;
 
     selectedText = parseTextContent(doc.content);

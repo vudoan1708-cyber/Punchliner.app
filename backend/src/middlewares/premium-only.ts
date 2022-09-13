@@ -1,8 +1,8 @@
 import httpStatus from "http-status";
-import type { RequestHandlerWithType } from "../shared/request-type";
 import ApiError from "../utils/api-error";
 import { NOT_PREMIUM_USER, UNAUTHORIZED } from "../shared/error";
-import { AppUserTypeEnum } from "../models/account";
+import { AppUserType } from "../types/user-type";
+import type { RequestHandlerWithType } from "../shared/request-type";
 
 const isPremiumUser: RequestHandlerWithType<any, any> = async (
   req,
@@ -14,7 +14,7 @@ const isPremiumUser: RequestHandlerWithType<any, any> = async (
       throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
     }
 
-    if (req.user.type !== AppUserTypeEnum.PREMIUM) {
+    if (req.user.type !== AppUserType.PREMIUM) {
       throw new ApiError(httpStatus.FORBIDDEN, NOT_PREMIUM_USER, true);
     }
 

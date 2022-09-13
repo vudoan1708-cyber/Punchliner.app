@@ -1,27 +1,16 @@
-import mongoose from "mongoose";
 import config from "./configs";
 import logger from "./configs/logger";
 import app from "./app";
 import type { Server } from "http";
 
-let server: Server | null;
+const server: Server | null = app.listen(config.PORT, () => {
+  logger.info(`Listening to port ${config.PORT}`);
+});
 
-if (
-  !config.MONGODB_URI ||
-  config.MONGODB_URI === "" ||
-  !config.JWT_SECRET ||
-  config.JWT_SECRET === ""
-) {
-  logger.error("No config provided (MongoDB URI or JWT secret)");
+if (!config.JWT_SECRET || config.JWT_SECRET === "") {
+  logger.error("No config provided (JWT secret)");
   process.exit(1);
 }
-
-mongoose.connect(config.MONGODB_URI).then(() => {
-  logger.info("Connected to MongoDB");
-  server = app.listen(config.PORT, () => {
-    logger.info(`Listening to port ${config.PORT}`);
-  });
-});
 
 const exitHandler = () => {
   if (server) {
