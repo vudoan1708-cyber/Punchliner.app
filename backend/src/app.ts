@@ -13,7 +13,7 @@ import PaymentController from "./controllers/payment";
 const app = express();
 
 // NOTE: serve static files
-app.use(express.static("public"));
+app.use(express.static("dist"));
 
 // NOTE: 3rd party webhooks
 app.post(
