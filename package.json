@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "Punchliner",
   "scripts": {
-    "dev": "concurrently --kill-others \"cd ./frontend && npm run dev\" \"cd ./backend && npm run dev\"",
-    "preBuild": "cd ./backend && npm ci && cd ../frontend && npm ci",
-    "build": "npm run preBuild && cd ./backend && npm run build && cd ../frontend && npm run build"
+    "dev": "concurrently --kill-others \"cd ./backend && npm run dev\" \"cd ./frontend && npm run dev\"",
+    "start": "node public/app.js",
+    "preBuild": "npm ci && cd ./backend && npm ci && cd ../frontend && npm ci",
+    "copyNodeModules": "echo d | xcopy \"node_modules\" \"public/node_modules\" /E/S/C || cp -R ./node_modules public/node_modules",
+    "build": "npm run preBuild && (cd ./backend && npm run build) && (cd ../frontend && npm run build) && (cd ../ && npm run copyNodeModules)"
   },
   "repository": {
     "type": "git",
@@ -27,5 +29,26 @@
   "workspaces": [
     "packages/*"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "@supabase/supabase-js": "^1.35.6",
+    "bcrypt": "^5.0.1",
+    "cheerio": "^1.0.0-rc.12",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^6.5.1",
+    "express-session": "^1.17.3",
+    "helmet": "^5.1.1",
+    "http-status": "^1.5.2",
+    "jsonwebtoken": "^8.5.1",
+    "node-cache": "^5.1.2",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0",
+    "stripe": "^10.2.0",
+    "winston": "^3.8.1",
+    "zod": "^3.17.10"
+  }
 }
