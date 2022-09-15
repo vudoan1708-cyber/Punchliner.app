@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { navigate } from 'svelte-navigator';
+  import { navigate , Link } from 'svelte-navigator';
 
   import Button from '../../components/Button.svelte';
   import Loading from '../../components/Loading.svelte';
@@ -95,8 +95,8 @@
       </label>
     </div>
 
-    <p class="login_link">Already a member? <a href="/account/login"><u><i>Sign in.</i></u></a></p>
-
+    <p class="login_link">Already a member? <Link to="/account/login"><u><i>Sign in.</i></u></Link></p>
+    
     <div>
       <Button id="register" {disabled} on:click={goToLoginScreen}>Register</Button>
       <Button id="cancel" type="secondary" on:click={goToHomepage}>Cancel</Button>

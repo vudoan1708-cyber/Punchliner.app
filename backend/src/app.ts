@@ -4,6 +4,7 @@ import cors from "cors";
 import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 import passport from "passport";
+import path from "path";
 import mainRoutes from "./routes/v1";
 import { errorHandler } from "./middlewares/error-handler";
 import { PassportJWTStrategy, PassportLocalStrategy } from "./configs/passport";
@@ -14,6 +15,10 @@ const app = express();
 
 // NOTE: serve static files
 app.use(express.static("dist"));
+
+app.get("/", (req, res) => {
+  res.sendFile("index.html", { root: path.join(__dirname, "dist") });
+});
 
 // NOTE: 3rd party webhooks
 app.post(

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { navigate } from "svelte-navigator";
+  import { navigate, Link } from "svelte-navigator";
 
   import Button from "../../components/Button.svelte";
   import Loading from "../../components/Loading.svelte";
@@ -96,7 +96,7 @@
       </label>
     </div>
 
-    <p class="register_link">Not a member? <a href="/account/register"><u><i>Register your account here.</i></u></a></p>
+    <p class="register_link">Not a member? <Link to="/account/register"><u><i>Register your account here.</i></u></Link></p>
 
     <div>
       <Button id="register" {disabled} on:click={goToEditor}>Login</Button>

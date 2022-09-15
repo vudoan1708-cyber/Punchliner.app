@@ -1,16 +1,18 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-
   import { navigate } from 'svelte-navigator';
-
+  
   import Modal from '../components/Modal.svelte';
   import Button from '../components/Button.svelte';
-
+  
   // Utility
   import { cookiestore } from '../helper/storage';
-
+  
   // Type
   import type { Error } from '../types/Error';
+  
+  // Media
+  import JOKEAPP_MP4 from '../assets/jokeapp.mp4';
 
   type Message = Error;
   const message: Message = {
@@ -49,8 +51,7 @@
       </p>
       <video width="320" controls>
         <track kind="captions">
-        <source src="src/assets/demo/jokeapp.mov" type="video/mp4">
-        <source src="src/assets/demo/jokeapp.mp4" type="video/mp4">
+        <source src={JOKEAPP_MP4} type="video/mp4">
         Your browser does not support the video tag.
       </video>
     </div>

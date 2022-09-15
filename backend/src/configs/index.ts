@@ -15,7 +15,6 @@ export default {
   },
   SUPABASE: {
     PROJECT_URL: process.env.SUPABASE_PROJECT_URL || "",
-    DATABASE_URL: process.env.SUPABASE_DATABASE_URL || "",
     API_KEY: process.env.SUPABASE_API_KEY || "",
   },
 };

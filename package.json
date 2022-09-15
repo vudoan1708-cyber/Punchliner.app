@@ -7,7 +7,7 @@
     "start": "node public/app.js",
     "preBuild": "npm ci && cd ./backend && npm ci && cd ../frontend && npm ci",
     "copyNodeModules": "echo d | xcopy \"node_modules\" \"public/node_modules\" /E/S/C || cp -R ./node_modules public/node_modules",
-    "build": "npm run preBuild && (cd ./backend && npm run build) && (cd ../frontend && npm run build) && (cd ../ && npm run copyNodeModules)"
+    "build": "npm run preBuild && (cd ./backend && npm run build) && (cd ./frontend && npm run build)"
   },
   "repository": {
     "type": "git",

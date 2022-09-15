@@ -2,7 +2,6 @@ import { createClient } from "@supabase/supabase-js";
 import { definitions } from "../types/supabase";
 import configs from "../configs";
 import logger from "../configs/logger";
-import { PaginationOption } from "../shared/request-type";
 
 const supabase = createClient(
   configs.SUPABASE.PROJECT_URL,
