@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { navigate } from 'svelte-navigator';
+  import { navigate, Link } from 'svelte-navigator';
   
   import Modal from '../components/Modal.svelte';
   import Button from '../components/Button.svelte';
@@ -43,7 +43,7 @@
     </header>
 
     <Button on:click={goToRegisterScreen}>Register for free and start writing</Button>
-    <p class="login_link">Already a member? <a href="/account/login"><u><i>Sign in.</i></u></a></p>
+    <p class="login_link">Already a member? <Link to="/account/login"><u><i>Sign in.</i></u></Link></p>
     
     <div id="demo">
       <p style="margin: var(--margin); font-size: var(--type-body-size); font-style: italic;">

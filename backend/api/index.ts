@@ -1,9 +1,10 @@
-import config from "./configs";
-import logger from "./configs/logger";
+import config from "../configs";
+import logger from "../configs/logger";
 import app from "./app";
+import http from 'http';
 import type { Server } from "http";
 
-const server: Server | null = app.listen(config.PORT, () => {
+const server: Server | null = http.createServer(app).listen(config.PORT, () => {
   logger.info(`Listening to port ${config.PORT}`);
 });
 

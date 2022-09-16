@@ -1,0 +1,22 @@
+{
+  "version": 2,
+   "builds": [
+    {
+      "src": "./public/api/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "./public/api/app.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "./public/api/v1/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "./public/dist/index.html",
+      "use": "@vercel/static"
+    }
+   ],
+  "rewrites": [{ "source": "/(.*)", "destination": "/public/api" }]
+}

@@ -2,11 +2,11 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "backend server for Punchliner app",
-  "main": "dist/index.js",
+  "main": "../public/api/index.js",
   "scripts": {
-    "start": "export NODE_ENV=production && node dist/index.js",
-    "dev": "tsnd --respawn src/index.ts",
-    "build": "NODE_ENV=production && rimraf ../public && tsc --outDir ../public",
+    "start": "export NODE_ENV=production && node ../public/api/index.js",
+    "dev": "tsnd --respawn api/index.ts",
+    "build": "(NODE_ENV=production || set NODE_ENV=production) && rimraf ../public && tsc --outDir ../public",
     "codegen:type": "npx openapi-typescript $(echo $(grep SUPABASE_PROJECT_URL .env | cut -d '=' -f2)$(echo \"/rest/v1/?apikey=\")$(grep SUPABASE_API_KEY .env | cut -d '=' -f2)) --output src/types/supabase.ts"
   },
   "keywords": [

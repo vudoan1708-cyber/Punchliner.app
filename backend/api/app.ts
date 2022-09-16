@@ -5,20 +5,13 @@ import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 import passport from "passport";
 import path from "path";
-import mainRoutes from "./routes/v1";
-import { errorHandler } from "./middlewares/error-handler";
-import { PassportJWTStrategy, PassportLocalStrategy } from "./configs/passport";
-import PaymentController from "./controllers/payment";
+import mainRoutes from "./v1";
+import { errorHandler } from "../middlewares/error-handler";
+import { PassportJWTStrategy, PassportLocalStrategy } from "../configs/passport";
+import PaymentController from "../controllers/payment";
 
 // NOTE: init app instance
 const app = express();
-
-// NOTE: serve static files
-app.use(express.static("dist"));
-
-app.get("/", (req, res) => {
-  res.sendFile("index.html", { root: path.join(__dirname, "dist") });
-});
 
 // NOTE: 3rd party webhooks
 app.post(
@@ -54,9 +47,25 @@ app.use(express.json());
 // NOTE: parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/v1", mainRoutes);
+app.use("/api/v1", mainRoutes);
 
 // NOTE: error handler
 app.use(errorHandler);
+
+// check if the app is running in production
+if (process.env.NODE_ENV === 'production') {
+  const root = path.join(__dirname, '../dist');
+
+  // NOTE: serve static files
+  app.use(express.static(root));
+
+// otherwise
+} else {
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+  });
+}
 
 export default app;
