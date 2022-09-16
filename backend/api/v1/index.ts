@@ -1,8 +1,8 @@
 import express from "express";
 import { authLimiter } from "../../middlewares/rate-limiter";
-import AuthRoutes from "./auth/auth";
-import DocumentRoutes from "./document/document";
-import PaymentRoutes from "./payment/payment";
+import AuthRoutes from "./auth";
+import DocumentRoutes from "./document";
+import PaymentRoutes from "./payment";
 
 const router = express.Router();
 

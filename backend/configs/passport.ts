@@ -3,11 +3,11 @@ import passportJwt from "passport-jwt";
 import httpStatus from "http-status";
 import AccountService from "../services/account.service";
 import PasswordUtil from "../utils/password";
-import CacheManager from "../configs/cache";
+import CacheManager from "./cache";
 import ApiError from "../utils/api-error";
-import configs from "../configs";
-import { UNAUTHORIZED } from "../shared/error";
-import { INVALID_PASSWORD_ERROR, USER_NOT_FOUND } from "../shared/error";
+import configs from ".";
+import { UNAUTHORIZED } from "../shared/error/index";
+import { INVALID_PASSWORD_ERROR, USER_NOT_FOUND } from "../shared/error/index";
 import { AppUserType } from "../types/user-type";
 import type { Request } from "express";
 

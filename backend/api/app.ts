@@ -5,7 +5,7 @@ import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 import passport from "passport";
 import path from "path";
-import mainRoutes from "./v1/routes";
+import mainRoutes from "./v1";
 import { errorHandler } from "../middlewares/error-handler";
 import { PassportJWTStrategy, PassportLocalStrategy } from "../configs/passport";
 import PaymentController from "../controllers/payment";
@@ -47,7 +47,7 @@ app.use(express.json());
 // NOTE: parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/v1", mainRoutes);
+app.use("/api/v1", mainRoutes);
 
 // NOTE: error handler
 app.use(errorHandler);
