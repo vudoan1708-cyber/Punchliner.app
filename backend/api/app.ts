@@ -59,6 +59,9 @@ if (process.env.NODE_ENV === 'production') {
   // NOTE: serve static files
   app.use(express.static(root));
 
+  // Express will serve up the front-end index.html file if it doesn't recognise the route
+  app.use('*', (req, res) => res.sendFile(path.join(root, 'index.html')));
+
 // otherwise
 } else {
   app.use((req, res, next) => {
