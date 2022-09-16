@@ -1,9 +1,9 @@
 import express from "express";
 import passport from "passport";
-import DocumentController from "../../controllers/document";
-import optionalJWTAuthenicate from "../../middlewares/optional-jwt";
-import isPremiumUser from "../../middlewares/premium-only";
-import { schemaValidate } from "../../middlewares/schema-validator";
+import DocumentController from "../../../controllers/document";
+import optionalJWTAuthenicate from "../../../middlewares/optional-jwt";
+import isPremiumUser from "../../../middlewares/premium-only";
+import { schemaValidate } from "../../../middlewares/schema-validator";
 import {
   SaveDocumentSchema,
   CreateDocumentSchema,
@@ -11,7 +11,7 @@ import {
   ShareDocumentSchema,
   CanViewDocumentSchema,
   UnShareDocumentSchema,
-} from "../../schema/document.schema";
+} from "../../../schema/document.schema";
 
 const router = express.Router();
 

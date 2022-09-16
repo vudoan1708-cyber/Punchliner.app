@@ -1,5 +1,5 @@
 import z from "zod";
-import { DOCUMENT_ID_PARAM } from "../routes/v1/document";
+import { DOCUMENT_ID_PARAM } from "../api/v1/document/document";
 import {
   CREATE_DOCUMENT_INVALID_TITLE,
   SAVE_DOCUMENT_INVALID_DOCUMENT_ID,
