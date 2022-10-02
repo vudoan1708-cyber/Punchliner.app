@@ -4,7 +4,8 @@
   
   import Modal from '../components/Modal.svelte';
   import Button from '../components/Button.svelte';
-  
+  import BuyMeACoffeeButton from '../components/BuyMeACoffeeButton.svelte';
+
   // Utility
   import { cookiestore } from '../helper/storage';
   
@@ -46,9 +47,11 @@
     <p class="login_link">Already a member? <Link to="/account/login"><u><i>Sign in.</i></u></Link></p>
     
     <div id="demo">
-      <p style="margin: var(--margin); font-size: var(--type-body-size); font-style: italic;">
+      <!-- Buy me a coffee button should be here -->
+      <BuyMeACoffeeButton style="align-self: center;" />
+      <!-- <p style="margin: var(--margin); font-size: var(--type-body-size); font-style: italic;">
         Have a look through our demo video to have a clue what our app is about
-      </p>
+      </p> -->
       <video width="320" controls>
         <track kind="captions">
         <source src={JOKEAPP_MP4} type="video/mp4">
@@ -74,26 +77,6 @@
           and that is the ability to display and hide text on demand.<br />
           This feature allows users to blur the punchlines when you're joke writing
           and leave it as a surprise when the hidden text is hovered on by someone else !!!</p>
-      </div>
-      <div>
-        <h3>Pricing</h3>
-        <p>Punchliner is free to use with limited features. Create a new account and start writing immediately
-          with no credit card required.<br />
-          Premium accounts that allow for an unlimited number of documents to be created and
-          sharing written documents with passcode protection has never been easier.
-        </p>
-        <table class="pricingTable">
-          <tbody>
-            <tr>
-              <th>Punchliner BASIC</th>
-              <td>Free</td>
-            </tr>
-            <tr>
-              <th>Punchliner PREMIUM</th>
-              <td>$3 / month</td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
 
@@ -129,6 +112,9 @@
   #demo {
     margin-top: calc(var(--margin) * 2);
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--margin);
   }
 
   #demo video {
@@ -146,11 +132,5 @@
   div.features h3,
   div.features p {
     margin: var(--margin);
-  }
-
-  table.pricingTable {
-    position: relative;
-    width: 50%;
-    margin: calc(var(--margin) * 3) auto;
   }
 </style>
