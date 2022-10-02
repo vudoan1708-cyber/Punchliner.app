@@ -8,6 +8,7 @@
   import Modal from '../components/Modal.svelte';
   import ToolTip from '../components/ToolTip.svelte';
   import Icon from '../components/Icon/Icon.svelte';
+  import BuyMeACoffeeButton from '../components/BuyMeACoffeeButton.svelte';
 
   // Utility
   import { cookiestore } from '../helper/storage';
@@ -183,10 +184,11 @@
   {/if}
 
   {#if !premiumUser}
-    <div class="upgradeMessage" on:click={goToPremium}>
+    <!-- <div class="upgradeMessage" on:click={goToPremium}>
       <Icon name="star" />
       <u>Upgrade to a Premium membership now</u>
-    </div>
+    </div> -->
+    <BuyMeACoffeeButton />
   {/if}
 
   {#if !!docToBeShared}
@@ -283,7 +285,7 @@
     color: var(--color-error-foreground);
   }
 
-  .upgradeMessage {
+  /* .upgradeMessage {
     position: relative;
     width: fit-content;
     display: flex;
@@ -294,5 +296,5 @@
     margin: 0 auto;
     margin-top: calc(var(--margin) * 5);
     cursor: pointer;
-  }
+  } */
 </style>

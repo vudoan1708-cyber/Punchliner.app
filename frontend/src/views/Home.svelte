@@ -48,7 +48,7 @@
     
     <div id="demo">
       <!-- Buy me a coffee button should be here -->
-      <BuyMeACoffeeButton />
+      <BuyMeACoffeeButton style="align-self: center;" />
       <!-- <p style="margin: var(--margin); font-size: var(--type-body-size); font-style: italic;">
         Have a look through our demo video to have a clue what our app is about
       </p> -->
@@ -112,6 +112,9 @@
   #demo {
     margin-top: calc(var(--margin) * 2);
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--margin);
   }
 
   #demo video {
