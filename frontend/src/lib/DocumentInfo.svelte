@@ -188,7 +188,9 @@
       <Icon name="star" />
       <u>Upgrade to a Premium membership now</u>
     </div> -->
-    <BuyMeACoffeeButton />
+    <div style="margin-top: calc(var(--margin) * 5); text-align: center;">
+      <BuyMeACoffeeButton />
+    </div>
   {/if}
 
   {#if !!docToBeShared}
