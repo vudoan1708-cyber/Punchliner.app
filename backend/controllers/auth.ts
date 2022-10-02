@@ -5,7 +5,6 @@ import ApiError from "../utils/api-error";
 import { createResponse } from "../utils/response";
 import AuthService from "../services/auth.service";
 import AccountService from "../services/account.service";
-import Stripe from "../vendor/stripe";
 
 const login: RequestHandlerWithType<{
   email: string;
@@ -40,21 +39,22 @@ const register: RequestHandlerWithType<{
       throw new ApiError(httpStatus.CONFLICT, USER_ALREADY_EXISTED, true);
     }
 
-    // NOTE: create Stripe customer
-    const stripeCustomer = await Stripe.addNewCustomer(email);
+    // // NOTE: create Stripe customer
+    // const stripeCustomer = await Stripe.addNewCustomer(email);
 
-    if (!stripeCustomer) {
-      throw new ApiError(
-        httpStatus.INTERNAL_SERVER_ERROR,
-        USER_ALREADY_EXISTED,
-        false
-      );
-    }
+    // if (!stripeCustomer) {
+    //   throw new ApiError(
+    //     httpStatus.INTERNAL_SERVER_ERROR,
+    //     USER_ALREADY_EXISTED,
+    //     false
+    //   );
+    // }
 
     const payload = {
       email,
       password,
-      stripe_cus_id: stripeCustomer.id,
+      stripe_cus_id: "empty",
+      // stripe_cus_id: stripeCustomer.id,
     };
 
     const createdAccount = await AccountService.createNewAccount(payload);

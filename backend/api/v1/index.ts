@@ -2,7 +2,7 @@ import express from "express";
 import { authLimiter } from "../../middlewares/rate-limiter";
 import AuthRoutes from "./auth";
 import DocumentRoutes from "./document";
-import PaymentRoutes from "./payment";
+// import PaymentRoutes from "./payment";
 
 const router = express.Router();
 
@@ -13,6 +13,6 @@ router.use("/auth", authLimiter, AuthRoutes);
 router.use("/document", DocumentRoutes);
 
 // NOTE: JWT-protected routes
-router.use("/payment", PaymentRoutes);
+// router.use("/payment", PaymentRoutes);
 
 export default router;
