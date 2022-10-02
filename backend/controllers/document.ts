@@ -13,7 +13,6 @@ import {
   DOCUMENT_UPDATE_FAILED,
   DOCUMENT_VIEW_FORBIDDEN,
   DOCUMENT_VIEW_FORBIDDEN_WRONG_PASSCODE,
-  NOT_PREMIUM_USER,
   UNAUTHORIZED,
 } from "../shared/error";
 import type {
@@ -111,15 +110,15 @@ type CreateDocumentRequest = RequestHandlerWithType<{
 
 const createDocument: CreateDocumentRequest = async (req, res, next) => {
   try {
-    if (!req.user || !req.user._id) {
+    if (!req?.user?._id) {
       throw new ApiError(httpStatus.UNAUTHORIZED, UNAUTHORIZED, true);
     }
 
-    const documents = await DocumentService.getAllUserDocuments(req.user._id);
+    // const documents = await DocumentService.getAllUserDocuments(req.user._id);
 
-    if (documents?.length !== 0 && req.user.type !== AppUserType.PREMIUM) {
-      throw new ApiError(httpStatus.FORBIDDEN, NOT_PREMIUM_USER, true);
-    }
+    // if (documents?.length !== 0 && req.user.type !== AppUserType.PREMIUM) {
+    //   throw new ApiError(httpStatus.FORBIDDEN, NOT_PREMIUM_USER, true);
+    // }
 
     const { content, title } = req.body;
 

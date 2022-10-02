@@ -2,7 +2,7 @@ import express from "express";
 import passport from "passport";
 import DocumentController from "../../../controllers/document";
 import optionalJWTAuthenicate from "../../../middlewares/optional-jwt";
-import isPremiumUser from "../../../middlewares/premium-only";
+// import isPremiumUser from "../../../middlewares/premium-only";
 import { schemaValidate } from "../../../middlewares/schema-validator";
 import {
   SaveDocumentSchema,
@@ -47,7 +47,7 @@ router.patch(
 router.post(
   `/share/:${DOCUMENT_ID_PARAM}`,
   passport.authenticate("jwt", { session: false }),
-  isPremiumUser,
+  // isPremiumUser,
   schemaValidate(ShareDocumentSchema),
   DocumentController.shareDocument
 );

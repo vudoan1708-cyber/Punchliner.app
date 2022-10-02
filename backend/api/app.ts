@@ -7,21 +7,20 @@ import passport from "passport";
 import path from "path";
 import mainRoutes from "./v1";
 import { errorHandler } from "../middlewares/error-handler";
-import { PassportJWTStrategy, PassportLocalStrategy } from "../configs/passport";
-import PaymentController from "../controllers/payment";
+import {
+  PassportJWTStrategy,
+  PassportLocalStrategy,
+} from "../configs/passport";
 
 // NOTE: init app instance
 const app = express();
 
 // NOTE: 3rd party webhooks
-app.post(
-  "/v1/stripe/webhook",
-  express.raw({ type: "application/json" }),
-  PaymentController.registerStripeWebhookEvents
-);
-
-// NOTE: setup PUG view engine
-app.set("view engine", "pug");
+// app.post(
+//   "/v1/stripe/webhook",
+//   express.raw({ type: "application/json" }),
+//   PaymentController.registerStripeWebhookEvents
+// );
 
 // NOTE: set security HTTP headers
 app.use(helmet());
@@ -53,20 +52,23 @@ app.use("/api/v1", mainRoutes);
 app.use(errorHandler);
 
 // check if the app is running in production
-if (process.env.NODE_ENV === 'production') {
-  const root = path.join(__dirname, '../dist');
+if (process.env.NODE_ENV === "production") {
+  const root = path.join(__dirname, "../dist");
 
   // NOTE: serve static files
   app.use(express.static(root));
 
   // Express will serve up the front-end index.html file if it doesn't recognise the route
-  app.use('*', (req, res) => res.sendFile(path.join(root, 'index.html')));
+  app.use("*", (_, res) => res.sendFile(path.join(root, "index.html")));
 
-// otherwise
+  // otherwise
 } else {
-  app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  app.use((_, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+    );
     next();
   });
 }
